@@ -6,11 +6,15 @@ import random
 from math import sin, cos, pi, sqrt
 import matplotlib.pyplot as plt
 
+"""
+RANSAC configuration parameters
+"""
 MAX_TRIES = 100
 SAMPLE_WINDOW = 10
 MAX_SAMPLES = 5
 TOLERANCE = 0.05
 CONSENSUS = 40
+
 
 class Landmark:
 
@@ -20,37 +24,43 @@ class Landmark:
         self.m = -1
         self.b = -1
 
-def least_squares(points):
-    # Find least-squares line for point cloud
-    # y = Ap where p = [m, b] and A = [[x, 1]]
-    len, _ = points.shape
-    A = np.vstack([points[:, 0], np.ones(len)]).T
+def least_squares(points, len = None) -> tuple[float, float]:
+    """
+    Find least-squares line for point cloud
+    y = Ap where p = [m, b] and A = [[x, 1]]
+    """
+    if len is None:
+        len, _ = points.shape
 
-    return np.linalg.lstsq(A, points[:, 1], rcond=None)[0]
+    A = np.vstack([points[:len, 0], np.ones(len)]).T
 
-def distance_to_line(m, b, point):
+    return np.linalg.lstsq(A, points[:len, 1], rcond=None)[0]
+
+def distance_to_line(m, b, point) -> float:
+    """
+    Compute distance from point(x,y) to line y = mx + b
+    """
     x, y = point
 
     return abs(-m*x + y - b) / sqrt(m**2 + 1)
 
-#ranges = [x, y] in world coordinates
-def findLandmarks(ranges):
-    noRanges, _ = ranges.shape
+def findLandmarks(laser_points):
+    noRanges, _ = laser_points.shape
     noTries = 0
 
     lines = []
 
-    notInLine = ranges.copy()
+    notInLine = laser_points.copy()
 
     while noTries < MAX_TRIES and len(notInLine) > CONSENSUS:
 
         randomSamples = np.full((MAX_SAMPLES, 2), 0.0, dtype=np.float64)
         centerIndex = random.randrange(
             SAMPLE_WINDOW // 2, 
-            len(ranges) - SAMPLE_WINDOW // 2
+            len(laser_points) - SAMPLE_WINDOW // 2
         )
 
-        randomSamples[0] = ranges[centerIndex]
+        randomSamples[0] = laser_points[centerIndex]
 
         for i in range(1, MAX_SAMPLES):
             newPoint = False
@@ -61,17 +71,16 @@ def findLandmarks(ranges):
                     centerIndex + SAMPLE_WINDOW // 2
                 )
 
-                if ranges[sampleIndex] not in randomSamples:
+                if laser_points[sampleIndex] not in randomSamples:
                     newPoint = True
 
-            randomSamples[i] = ranges[sampleIndex] 
+            randomSamples[i] = laser_points[sampleIndex] 
 
-        # Find fitting line
+        # Fitting line to sampled points
         m, b = least_squares(randomSamples)
 
         # Check how many points are near enough to the line to be considered
         # part of it.
-
         associated = np.zeros((noRanges, 2))
         associatedCount = 0
         notAssociated = np.zeros((noRanges, 2))
@@ -90,6 +99,10 @@ def findLandmarks(ranges):
         if associatedCount >= CONSENSUS:
             notInLine = notAssociated[ : notAssociatedCount]
 
+            m, b = least_squares(associated, associatedCount)
+
+            # TODO: Dont include associated and associatedCount
+            # currently needed for display
             lines.append((m, b, associated, associatedCount))
 
             noTries = 0
@@ -117,7 +130,7 @@ def cartesian_coords(laser, pose = Pose(0, 0, 0, 0, 0, 0, 0)):
     degreeResolution = step
 
     for i, r in enumerate(laserdata):
-        points[i][0] = r * cos(theta)
+        points[i][0] = r * cos(theta) 
         points[i][1] = r * -sin(theta)
         theta += degreeResolution
 
