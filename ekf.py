@@ -36,7 +36,7 @@ K = np.zeros((3, 2))
 
 def odometryUpdate(odom: Odom):
     """
-    EKS first step. 
+    EKF first step. 
     """
     ix, iy, ith, _ = odom
 
@@ -73,7 +73,7 @@ def odometryUpdate(odom: Odom):
 
 def reobservedLandmarksUpdate(reobservedLandmarks: list[Landmark]):
     """
-    EKS second step
+    EKF second step
     """
 
     x = X[0]
@@ -95,7 +95,8 @@ def reobservedLandmarksUpdate(reobservedLandmarks: list[Landmark]):
         H = np.zeros((2, noLandmarks))
 
         H[0:2, 0:3] = robot_H
-        
+        # TODO: Fill H with corresponding landmark_H
+
 
         c = 0.01
 
@@ -104,5 +105,6 @@ def reobservedLandmarksUpdate(reobservedLandmarks: list[Landmark]):
             [  0  , 1 ]
         ])
 
+        # Inovation for landmark i
         S = np.matmul(np.matmul(H, P), H.T) + np.matmul()
 
