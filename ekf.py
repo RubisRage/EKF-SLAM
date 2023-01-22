@@ -1,6 +1,7 @@
 import numpy as np
 from collections import namedtuple
 from landmarks import Landmark
+from math import sqrt 
 
 Odom = namedtuple("Odom", "ix, iy, ith, vx, vy, vth")
 
@@ -74,4 +75,34 @@ def reobservedLandmarksUpdate(reobservedLandmarks: list[Landmark]):
     """
     EKS second step
     """
-    pass
+
+    x = X[0]
+    y = X[1]
+
+    noLandmarks = len(reobservedLandmarks)
+
+    for lm in reobservedLandmarks:
+        lx, ly = lm.pos
+
+        r = sqrt((lx - x)**2 + (ly - y)**2)
+        r2 = r**2
+
+        robot_H = np.array([
+            [   (x-lx)/r  , (y-ly)/r    ,  0 ],
+            [ (ly - y)/r2 , (lx - x)/r2 , -1 ],
+        ])
+
+        H = np.zeros((2, noLandmarks))
+
+        H[0:2, 0:3] = robot_H
+        
+
+        c = 0.01
+
+        R = np.array([
+            [ r*c , 0 ],
+            [  0  , 1 ]
+        ])
+
+        S = np.matmul(np.matmul(H, P), H.T) + np.matmul()
+
