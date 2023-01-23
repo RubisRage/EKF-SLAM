@@ -108,3 +108,6 @@ def reobservedLandmarksUpdate(reobservedLandmarks: list[Landmark]):
         # Inovation for landmark i
         S = np.matmul(np.matmul(H, P), H.T) + np.matmul()
 
+
+def includeNewLandmarks():
+    pass

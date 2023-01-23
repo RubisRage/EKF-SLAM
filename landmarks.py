@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
-from loader import loader, Pose, Laser
+from utils import *
+from loader import loader
 import numpy as np
 import random
-from math import sin, cos, pi, sqrt
 import matplotlib.pyplot as plt
+from dataclasses import dataclass
 
 """
 RANSAC configuration parameters
@@ -16,35 +17,11 @@ TOLERANCE = 0.05
 CONSENSUS = 40
 
 
-class Landmark:
-
-    def __init__(self) -> None:
-        self.id = -1
-        self.pos = np.zeros(2)
-        self.m = -1
-        self.b = -1
-
-def least_squares(points, len = None) -> tuple[float, float]:
+def findLines(laser_points, robotPose):
     """
-    Find least-squares line for point cloud
-    y = Ap where p = [m, b] and A = [[x, 1]]
+    RANSAC line landmark detector.
     """
-    if len is None:
-        len, _ = points.shape
 
-    A = np.vstack([points[:len, 0], np.ones(len)]).T
-
-    return np.linalg.lstsq(A, points[:len, 1], rcond=None)[0]
-
-def distance_to_line(m, b, point) -> float:
-    """
-    Compute distance from point(x,y) to line y = mx + b
-    """
-    x, y = point
-
-    return abs(-m*x + y - b) / sqrt(m**2 + 1)
-
-def findLandmarks(laser_points):
     noRanges, _ = laser_points.shape
     noTries = 0
 
@@ -118,23 +95,6 @@ def findLandmarks(laser_points):
 
 #end 
 
-def cartesian_coords(laser, pose = Pose(0, 0, 0, 0, 0, 0, 0)):
-    """
-    Converts a set of laser measurements in 2d points 
-    """
-    _, start, _, step, laserdata = laser 
-
-    points = np.zeros((laserdata.shape[0], 2))
-
-    theta = start
-    degreeResolution = step
-
-    for i, r in enumerate(laserdata):
-        points[i][0] = r * cos(theta) 
-        points[i][1] = r * -sin(theta)
-        theta += degreeResolution
-
-    return points
 
 
 def main():
@@ -142,7 +102,7 @@ def main():
 
     for pose, laser in data_loader:
 
-        points = cartesian_coords(laser)
+        points = cartesian_coords(laser, pose)
 
         x = points[:, 0]
         y = points[:, 1]
