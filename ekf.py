@@ -119,5 +119,5 @@ def reobservedLandmarksUpdate(associator: Associator):
         # Find z and h in order to do (z - h)
         X = X + np.matmul(K, ())
 
-def includeNewLandmarks():
+def includeNewLandmarks(associator: Associator):
     pass

@@ -41,3 +41,12 @@ def distance_to_line(m, b, point) -> float:
     x, y = point
 
     return abs(-m*x + y - b) / sqrt(m**2 + 1)
+
+def distance(a: tuple[int, int], b: tuple[int, int]):
+    ax, ay = a
+    bx, by = b
+
+    vx = bx - ax
+    vy = by - ay
+
+    return sqrt(vx**2 + vy**2)
