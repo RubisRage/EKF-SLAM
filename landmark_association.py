@@ -1,9 +1,8 @@
-from landmarks import Landmark, findLines
+from ransac import findLines
 from loader import Laser, Pose
-from utils import cartesian_coords
+from utils import cartesian_coords, distance
 from dataclasses import dataclass
-from ekf import X
-from math import sqrt, atan
+from math import sqrt, atan, inf
 
 STARTING_LIFE = 40
 
@@ -34,31 +33,42 @@ class Landmark:
 Associator policy configuration parameters
 """
 MIN_OBSERVATIONS = 5 
-MAX_DISTANCE = 5000
+MIN_DISTANCE = 5000
 
 class Associator:
 
     def __init__(self) -> None:
         self.landmarkDB: list[Landmark] = []
+        self.ID_INCREMENT = 0
         self.eskID_2_DBID: dict[int, int] = {}
+        self.associatedLandmarks: list[tuple[Landmark, Landmark]]
 
-    def extractLandmarks(self, laser: Laser):
-        robotPose = Pose(*X[0:3], 0, 0, 0)
+    def extractLandmarks(self, robotPose: tuple[float, float, float], laser: Laser):
+        self.measuredLandmarks.clear()
+
+        robotPose = Pose(*robotPose, 0, 0, 0)
         points = cartesian_coords(laser, robotPose)
 
         lines = findLines(points, robotPose)
 
         for line in lines:
             lm = self.createLandmark(line[0], line[1], robotPose)
+            if lm.id == -1:
+                self.addToDB(lm)
+            else:
+                self.associatedLandmarks.append(lm)
 
-    
-    def associateLandmark(self, lm: Landmark):
-        for candidate in self.landmarkDB:
-            pass
+
+    def addToDB(self, lm: Landmark):
+        lm.id = self.ID_INCREMENT
+        self.ID_INCREMENT += 1
+
+        self.landmarkDB.append(lm)
 
 
-    def updateLandmarks(self):
-        pass
+    def getAssociatedLandmarks(self):
+        return self.associatedLandmarks
+        
 
     def createLandmark(self, m, b, robotPose):
         xr, yr, thr, _ = robotPose
@@ -85,7 +95,34 @@ class Associator:
 
         lm.life = STARTING_LIFE
 
-        # Do associations? 
-
+        self.associateLandmark(lm)
 
         return lm
+
+
+    def associateLandmark(self, lm: Landmark):
+
+        least_distance = inf # math.inf
+        best_match_index = -1
+
+        for index, candidate in enumerate(self.landmarkDB):
+            candidate_pos = (candidate.x, candidate.y)
+            lm_pos        = (lm.x, lm.y)
+
+            d = distance(candidate_pos, lm_pos)
+
+            if d < least_distance:
+                best_match_index = index
+                least_distance = d
+
+        if least_distance > MIN_DISTANCE:
+            lm.id = -1
+        else:
+            lm.id = self.landmarkDB[best_match_index].id
+
+    def updateLandmark(self, lm: Landmark, matched: bool):
+
+        if matched:
+            self.landmarkDB[lm.id].timesObserved += 1
+        else:
+            self.addToDB(lm)

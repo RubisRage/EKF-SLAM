@@ -94,34 +94,3 @@ def findLines(laser_points, robotPose):
     return lines
 
 #end 
-
-
-
-def main():
-    data_loader = loader("medium_nd_5.log")
-
-    for pose, laser in data_loader:
-
-        points = cartesian_coords(laser, pose)
-
-        x = points[:, 0]
-        y = points[:, 1]
-
-        plt.plot(x, y, 'o', markersize=4, label="data")
-        plt.legend()
-        plt.show()
-
-        lines = findLandmarks(points)
-
-        colors = "bgrcmykw"
-
-        for i, l in enumerate(lines):
-            m, b, a, c = l
-            x, y = a[:c, 0], a[:c, 1]
-            plt.plot(x, m*x + b, colors[i], label=f"line {i}")
-            plt.plot(x, y, colors[i]+'*', markersize=5)
-
-        plt.show()
-
-if __name__ == "__main__":
-    main()
