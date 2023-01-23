@@ -55,11 +55,9 @@ def loader(filename) -> tuple[Pose, Laser]:
                         np_data
                     )
 
-            if (
-                position2d_current is not None 
+            if (position2d_current is not None 
                 and position2d_last is not None
-                and laser is not None
-                ):
+                and laser is not None):
 
                 odom = Odom(
                     position2d_current.x - position2d_last.x,
@@ -73,8 +71,6 @@ def loader(filename) -> tuple[Pose, Laser]:
                 if position2d_current.timestamp == laser.timestamp:
                     yield (odom, laser) 
 
-                    position2d_current = None
-                    position2d_last = None
                     laser = None
 
 

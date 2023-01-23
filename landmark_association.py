@@ -9,23 +9,23 @@ STARTING_LIFE = 40
 @dataclass
 class Landmark:
     # Unique identifier
-    id: int
+    id: int = -1
 
     # Landmark information
-    x: float 
-    y: float
-    range: float        # Distance to landmark
-    bearing: float      # Direction to landmark
+    x: float = -1.
+    y: float = -1.
+    range: float = -1.       # Distance to landmark
+    bearing: float = -1.     # Direction to landmark
 
     # Line constants
-    m: float
-    b: float
+    m: float = -1.
+    b: float = -1.
 
     # Counter to check whether to discard this landmark
-    life: int
+    life: int = -1
 
     # Number of times seen
-    timesObserved: int
+    timesObserved: int = -1
 
 
 
@@ -41,12 +41,11 @@ class Associator:
         self.landmarkDB: list[Landmark] = []
         self.ID_INCREMENT = 0
         self.eskID_2_DBID: dict[int, int] = {}
-        self.associatedLandmarks: list[tuple[Landmark, Landmark]]
+        self.associatedLandmarks: list[tuple[Landmark, Landmark]] = []
 
     def extractLandmarks(self, robotPose: tuple[float, float, float], laser: Laser):
-        self.measuredLandmarks.clear()
+        self.associatedLandmarks.clear()
 
-        robotPose = Pose(*robotPose, 0, 0, 0)
         points = cartesian_coords(laser, robotPose)
 
         lines = findLines(points, robotPose)
@@ -56,7 +55,7 @@ class Associator:
             if lm.id == -1:
                 self.addToDB(lm)
             else:
-                self.associatedLandmarks.append(lm)
+                self.associatedLandmarks.append((lm, self.landmarkDB[lm.id]))
 
 
     def addToDB(self, lm: Landmark):
@@ -67,11 +66,20 @@ class Associator:
 
 
     def getAssociatedLandmarks(self):
-        return self.associatedLandmarks
+
+        valid_associations = []
+
+        for measured, associated in self.associatedLandmarks:
+            if associated.timesObserved > MIN_OBSERVATIONS:
+                valid_associations.append((measured, associated))
+            else:
+                associated.timesObserved += 1
+
+        return self.valid_associations
         
 
     def createLandmark(self, m, b, robotPose):
-        xr, yr, thr, _ = robotPose
+        xr, yr, thr = robotPose
 
         m0 = -1.0 / m
         x = b / (m0 - m)
@@ -94,6 +102,7 @@ class Associator:
         lm.b = b
 
         lm.life = STARTING_LIFE
+        lm.timesObserved = 0
 
         self.associateLandmark(lm)
 

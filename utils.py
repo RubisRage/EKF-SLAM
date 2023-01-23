@@ -1,12 +1,13 @@
 import numpy as np
-from loader import Pose
 from math import sqrt, cos, sin
 
-def cartesian_coords(laser, robotPose = Pose(0, 0, 0, 0, 0, 0, 0)):
+def cartesian_coords(laser, robotPose = (0.,0.,0.)):
     """
     Converts a set of laser measurements in 2d points 
     """
     _, start, _, step, laserdata = laser 
+
+    x, y, th = robotPose
 
     points = np.zeros((laserdata.shape[0], 2))
 
@@ -14,8 +15,8 @@ def cartesian_coords(laser, robotPose = Pose(0, 0, 0, 0, 0, 0, 0)):
     degreeResolution = step
 
     for i, r in enumerate(laserdata):
-        points[i][0] = r * cos(theta + robotPose.th) 
-        points[i][1] = r * -sin(theta + robotPose.th)
+        points[i][0] = r * cos(theta + th) 
+        points[i][1] = r * -sin(theta + th)
         theta += degreeResolution
 
     return points

@@ -27,13 +27,10 @@ def main():
         for measured, associated in associated_landmarks: 
             # STEP 2: Update odometry estimation
 
-            only_validate = associated.timesObserved < MIN_OBSERVATIONS
-
             matched = reobservedLandmarkUpdate(
                 measured, 
                 associated, 
                 associator,
-                only_validate
             )
 
             associator.updateLandmark(measured, matched)

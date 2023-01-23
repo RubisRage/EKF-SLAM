@@ -39,6 +39,8 @@ def estimatedPose():
     return X[0:3]
 
 def odometryUpdate(odom: Odom):
+    global X
+
     """
     EKF first step. 
     """
@@ -58,11 +60,11 @@ def odometryUpdate(odom: Odom):
 
     # Update the process noise matrix, Q
     gaussian_sample = 0.5
-    Q = gaussian_sample * np.array({
+    Q = gaussian_sample * np.array([
         [ ix**2,  ix*iy,  ix*ith ],
         [ iy*ix,  iy**2,  iy*ith ],
         [ ith*ix, ith*iy, ith**2 ]
-    })
+    ])
     
     # Update covariance matrix (Robot covariance and robot-landmark covariance)
 
@@ -79,8 +81,9 @@ def reobservedLandmarkUpdate(
         measured: Landmark, 
         associated, 
         associator: Associator,
-        only_validate: bool
     ) -> bool:
+    global X
+
     """
     EKF second step. Acts as validation gate for landmark association as well.
     """
@@ -103,13 +106,12 @@ def reobservedLandmarkUpdate(
     
     noLandmarks = (P.shape[0] - 3) // 2
 
-    H = np.zeros((2, 2 * noLandmarks))
+    H = np.zeros((2, 3 + 2 * noLandmarks))
 
     H[0:2, 0:3] = robot_H
     # TODO: Fill H with corresponding landmark_H
 
     ekf_id = associator.getEFK_ID(associated.id)
-
 
     c = 0.01
 
@@ -140,8 +142,6 @@ def reobservedLandmarkUpdate(
 
     if validation_gate > VALIDATION_CONSTANT:
         return False
-
-    if only_validate: return True
 
     # Kalman gain: K = P * t(H) * S^-1
     K = np.matmul(np.matmul(P, H.T), np.linalg.inv(S))
