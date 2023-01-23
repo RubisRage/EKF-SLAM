@@ -1,6 +1,7 @@
 import numpy as np
 from collections import namedtuple
 from landmarks import Landmark
+from landmark_association import Associator
 from math import sqrt 
 
 Odom = namedtuple("Odom", "ix, iy, ith, vx, vy, vth")
@@ -71,7 +72,7 @@ def odometryUpdate(odom: Odom):
         P[0:3, i:i+2] = P[i:i+2, 0:3].T
 
 
-def reobservedLandmarksUpdate(reobservedLandmarks: list[Landmark]):
+def reobservedLandmarksUpdate(associator: Associator):
     """
     EKF second step
     """
@@ -82,7 +83,7 @@ def reobservedLandmarksUpdate(reobservedLandmarks: list[Landmark]):
     noLandmarks = len(reobservedLandmarks)
 
     for lm in reobservedLandmarks:
-        lx, ly = lm.pos
+        lx, ly = lm.x, lm.y
 
         r = sqrt((lx - x)**2 + (ly - y)**2)
         r2 = r**2
@@ -91,6 +92,8 @@ def reobservedLandmarksUpdate(reobservedLandmarks: list[Landmark]):
             [   (x-lx)/r  , (y-ly)/r    ,  0 ],
             [ (ly - y)/r2 , (lx - x)/r2 , -1 ],
         ])
+
+        landmark_H = -1*robot_H[0:2, 0:2]
 
         H = np.zeros((2, noLandmarks))
 
@@ -105,9 +108,16 @@ def reobservedLandmarksUpdate(reobservedLandmarks: list[Landmark]):
             [  0  , 1 ]
         ])
 
-        # Inovation for landmark i
-        S = np.matmul(np.matmul(H, P), H.T) + np.matmul()
+        V = np.identity(2)
 
+        # Inovation covariance for landmark i: Si = (H*P*T(H) + V*R*T(V))
+        S = np.matmul(np.matmul(H, P), H.T) + np.matmul(np.matmul(V, R), V.T)
+
+        # Kalman gain: K = P * t(H) * S^-1
+        K = np.matmul(np.matmul(P, H.T), np.linalg.inv(S))
+
+        # Find z and h in order to do (z - h)
+        X = X + np.matmul(K, ())
 
 def includeNewLandmarks():
     pass
