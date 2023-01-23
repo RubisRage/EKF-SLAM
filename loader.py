@@ -1,12 +1,14 @@
 import numpy as np
 from collections import namedtuple
 
+Odom = namedtuple("Odom", "ix, iy, ith, vx, vy, vth")
 Pose = namedtuple("Pose", "timestamp x y th vx vy vth")
 Laser = namedtuple("Laser", "timestamp start end step data")
 
 def loader(filename) -> tuple[Pose, Laser]:
 
-    position2d = None
+    position2d_current = None
+    position2d_last = None
     laser = None
 
     with open(filename, "r") as f:
@@ -27,7 +29,8 @@ def loader(filename) -> tuple[Pose, Laser]:
 
             match data_list:
                 case ["position2d", *_, x, y, th, vx, vy, vth, _]:
-                    position2d = Pose(
+                    position2d_last = position2d_current
+                    position2d_current = Pose(
                         timestamp,
                         float(x), 
                         float(y), 
@@ -52,9 +55,34 @@ def loader(filename) -> tuple[Pose, Laser]:
                         np_data
                     )
 
-            if position2d is not None and laser is not None:
-                if position2d.timestamp == laser.timestamp:
-                    yield (position2d, laser) 
+            if (
+                position2d_current is not None 
+                and position2d_last is not None
+                and laser is not None
+                ):
 
-                position2d = None
-                laser = None
+                odom = Odom(
+                    position2d_current.x - position2d_last.x,
+                    position2d_current.y - position2d_last.y,
+                    position2d_current.th - position2d_last.th,
+                    position2d_current.vx,
+                    position2d_current.vy,
+                    position2d_current.vth
+                )
+
+                if position2d_current.timestamp == laser.timestamp:
+                    yield (odom, laser) 
+
+                    position2d_current = None
+                    position2d_last = None
+                    laser = None
+
+
+def main():
+    data_loader = loader("medium_nd_5.log")
+
+    for odom, laser in data_loader:
+        print(f"{odom=}", f"{laser.timestamp}", sep="\n")
+
+if __name__ == "__main__":
+    main()
