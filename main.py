@@ -1,42 +1,43 @@
 #!/usr/bin/python
 
-from loader import loader, Pose
-from landmark_association import *
-from ekf import (
-    odometryUpdate,
-    estimatedPose,
-    reobservedLandmarkUpdate,
-    includeNewLandmarks
-)
+import numpy as np
+from ekf import predict
+from loader import loader
+from utils import pi_to_pi
 
+dt = 0.1  # seconds
 
-# Landmark manager and associator 
-associator = Associator()
+# State matrix X
+X = np.zeros((3,))
+
+# Covariance matrix
+P = np.zeros((3, 3))
+
+# Prediction model noise
+Q = 0.5
+
 
 def main():
+    global X, P
+
     data_loader = loader("medium_nd_5.log")
 
+    debug_start = [0, 0, 0]
+
     for controls, laser in data_loader:
-        # STEP 1: Update odometry estimation
-        odometryUpdate(controls)
 
-        associator.extractLandmarks(estimatedPose(), laser)
+        # STEP 1: Predict
+        X, P = predict(X, P, controls, Q, dt)
+        debug_start[0] += controls[0]
+        debug_start[1] += controls[1]
+        debug_start[2] = pi_to_pi(debug_start[2] + controls[2])
 
-        associated_landmarks = associator.getAssociatedLandmarks()
+        print("Predicted:", X)
+        print("Expected:", debug_start)
 
-        for measured, associated in associated_landmarks: 
-            # STEP 2: Update odometry estimation
 
-            matched = reobservedLandmarkUpdate(
-                measured, 
-                associated, 
-                associator,
-            )
-
-            associator.updateLandmark(measured, matched)
-
-        # STEP 3: Update odometry estimation
-        includeNewLandmarks()
+        # STEP 2:
+        # STEP 3:
 
 
 if __name__ == "__main__":
