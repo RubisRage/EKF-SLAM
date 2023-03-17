@@ -34,7 +34,7 @@ def predict(
         [ith]
     ])
 
-    WQW = + np.matmul(W * Q, W.T)
+    WQW = np.matmul(W * Q, W.T)
 
     # Update robot-robot covariance Prr = A * Prr * A.T + W * Q * W.T
     P[0:3, 0:3] = np.matmul(np.matmul(A, P[0:3, 0:3]), A.T) + WQW
