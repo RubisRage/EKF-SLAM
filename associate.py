@@ -9,10 +9,10 @@ AssociatedLandmark = namedtuple("AssociatedLandmark", "pos id")
 def associate(
         x: np.array,  # State matrix
         P: np.array,  # Covariance matrix
-        z: np.array,  # Extracted landmarks (2 x nLm)
+        z: np.array,  # Extracted landmarks
         R,            # Measurement noise
-        innerGate: float,
-        outerGate: float
+        innerGate: float,  # Association gate
+        outerGate: float   # New landmark gate
     ) -> tuple[
                 AssociatedLandmark,  # Associated landmarks (position and id)
                 np.array             # New landmarks (position)
@@ -21,7 +21,7 @@ def associate(
     associatedLm = []
     newLm = []
 
-    nLm = (x.shape[0] - 3)/2  # Number of already present features
+    nLm = (x.shape[0] - 3) / 2  # Number of already present features
 
     for lm in z:
         bestId = 0

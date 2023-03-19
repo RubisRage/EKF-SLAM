@@ -18,8 +18,6 @@ def predict(
     X[1] = X[1] + iy
     X[2] = pi_to_pi(X[2] + ith)
 
-    # Update covariance matrix
-
     # Jacobian of the prediction model
     A = np.array([
         [1, 0, -iy],
@@ -38,6 +36,7 @@ def predict(
 
     # Update robot-robot covariance Prr = A * Prr * A.T + W * Q * W.T
     P[0:3, 0:3] = np.matmul(np.matmul(A, P[0:3, 0:3]), A.T) + WQW
+
     # Update robot-landmark covariance Pri = A * Pri, Pir = Pri.T
     # TODO: Check if it should be Pri = A * Pri or Pri = A.T * Pri
     for idx in range(3, P.shape[0], 2):
