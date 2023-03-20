@@ -1,7 +1,6 @@
 import numpy as np
 from collections import namedtuple
 
-#Odom = namedtuple("Odom", "ix, iy, ith, vx, vy, vth")
 Odom = namedtuple("Odom", "ix, iy, ith")
 Pose = namedtuple("Pose", "timestamp x y th vx vy vth")
 Laser = namedtuple("Laser", "timestamp start end step data")
@@ -65,10 +64,7 @@ def loader(filename) -> tuple[Odom, Laser]:
                 odom = Odom(
                     position2d_current.x - position2d_last.x,
                     position2d_current.y - position2d_last.y,
-                    position2d_current.th - position2d_last.th,
-                  # position2d_current.vx,
-                  # position2d_current.vy,
-                  # position2d_current.vth
+                    position2d_current.th - position2d_last.th
                 )
 
                 if position2d_current.timestamp == laser.timestamp:

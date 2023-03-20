@@ -1,9 +1,12 @@
-from math import inf
+from math import inf, log
 from collections import namedtuple
+from models import observe_model
+from utils import pi_to_pi
+from numpy.linalg import det
 import numpy as np
 
 
-AssociatedLandmark = namedtuple("AssociatedLandmark", "pos id")
+AssociatedLandmark = namedtuple("AssociatedLandmark", "z id")
 
 
 def associate(
@@ -40,7 +43,7 @@ def associate(
                 outer = nis
 
         if bestId != 0:
-            associatedLm.append(AssociatedLandmark(lm, bestId))
+            associatedLm.append(AssociatedLandmark(np.array(lm), bestId))
         elif outer > outerGate:
             newLm.append(lm)
 
@@ -48,16 +51,29 @@ def associate(
 
 
 def compute_association(
-        x: np.array,  # State matrix
+        X: np.array,  # State matrix
         P: np.array,  # Covariance matrix
         z: np.array,  # Extracted landmark (Measure)
         fid: int,     # Existing feature to compare with z
         R             # Measurement noise
-    ) -> tuple[
-            float,  # Malahalanobis distance
-            float   # Normalised distance
-         ]:
+) -> tuple[
+    float,  # Malahalanobis distance
+    float   # Normalised distance
+]:
 
-    # TODO: Implement this function
+    zp, H = observe_model(X, fid)
+    v = z - zp  # Innovation
+    v[1] = pi_to_pi(v[1])
 
-    pass
+    # Innovation covariance: H * P * H' + R
+    S = np.matmul(np.matmul(H, P), H.T) + R
+
+    # Normalised innovation squared: v' * S * v
+    nis = np.matmul(np.matmul(v.T, S), v)
+
+    # Normalised distance: nis + ln(|S|)
+    nd = nis + log(det(S))
+
+    return nis, nd
+
+
