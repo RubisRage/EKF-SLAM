@@ -1,7 +1,8 @@
-import numpy as np
+from types import Odom
 from collections import namedtuple
 
-Odom = namedtuple("Odom", "ix, iy, ith")
+import numpy as np
+
 Pose = namedtuple("Pose", "timestamp x y th vx vy vth")
 Laser = namedtuple("Laser", "timestamp start end step data")
 
@@ -41,7 +42,7 @@ def loader(filename) -> tuple[Odom, Laser]:
                         float(vy),
                         float(vth)
                     )
-                case ["laser", _, _, _, _, start, end, step, max, count, *data]:
+                case ["laser", _, _, _, _, start, end, step, max, _, *data]:
                     data = filter(
                         lambda v: v != 0 and v <= float(max),
                         map(lambda v: float(v), data)

@@ -1,12 +1,10 @@
+from types import AssociatedLandmark
 from math import inf, log
-from collections import namedtuple
 from models import observe_model
 from utils import pi_to_pi
 from numpy.linalg import det
+
 import numpy as np
-
-
-AssociatedLandmark = namedtuple("AssociatedLandmark", "z id")
 
 
 def associate(

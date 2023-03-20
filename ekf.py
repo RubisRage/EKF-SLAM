@@ -1,9 +1,9 @@
-import numpy as np
-from numpy.linalg import inv
-from associate import AssociatedLandmark
-from loader import Odom
+from types import Odom, AssociatedLandmark
 from utils import pi_to_pi
 from models import observe_model
+from numpy.linalg import inv
+
+import numpy as np
 
 
 def predict(
@@ -40,7 +40,7 @@ def predict(
 
     WQW = W * Q @ W.T
 
-    # Update robot-robot covariance Prr = A * Prr * A.T + W * Q * W.T
+    # Update robot-robot covariance Prr = A * Prr * A' + W * Q * W'
     # P[0:3, 0:3] = np.matmul(np.matmul(A, P[0:3, 0:3]), A.T) + WQW
     P[0:3, 0:3] = A @ P[0:3, 0:3] @ A.T + WQW
 
@@ -79,8 +79,8 @@ def update(
         X = X + K @ v
 
         # Update covariance matrix
-        Ip = np.identity(P.shape[0])
-        P = (Ip - K @ H) @ P
+        Id = np.identity(P.shape[0])
+        P = (Id - K @ H) @ P
 
     return X, P
 
