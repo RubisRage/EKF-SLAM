@@ -4,7 +4,7 @@ from utils import pi_to_pi
 
 
 def predict(
-        X: np.array,     # Robots state [x, y, th]
+        X: np.array,     # System state
         P: np.array,     # Covariance matrix
         controls: Odom,  # control inputs: [ix, iy, ith]
         Q: float,        # Prediction model noise (Odometry accuracy)

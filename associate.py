@@ -21,6 +21,7 @@ def associate(
     associatedLm = []
     newLm = []
 
+    nRb = 3                     # Number of vehicle state variables
     nLm = (x.shape[0] - 3) / 2  # Number of already present features
 
     for lm in z:
@@ -29,7 +30,7 @@ def associate(
         outer = inf
 
         # For each present feature
-        for fid in range(nLm):
+        for fid in range(nRb, nLm):
             nis, nd = compute_association(x, P, lm, fid, R)
 
             if nis < innerGate and nd < bestN:
