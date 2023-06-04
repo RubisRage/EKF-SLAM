@@ -1,11 +1,8 @@
 #!/usr/bin/python
 
-from utils import *
-from loader import loader
+from utils import least_squares, distance_to_line
 import numpy as np
 import random
-import matplotlib.pyplot as plt
-from dataclasses import dataclass
 
 """
 RANSAC configuration parameters
@@ -33,7 +30,7 @@ def findLines(laser_points, robotPose):
 
         randomSamples = np.full((MAX_SAMPLES, 2), 0.0, dtype=np.float64)
         centerIndex = random.randrange(
-            SAMPLE_WINDOW // 2, 
+            SAMPLE_WINDOW // 2,
             len(laser_points) - SAMPLE_WINDOW // 2
         )
 
@@ -51,7 +48,7 @@ def findLines(laser_points, robotPose):
                 if laser_points[sampleIndex] not in randomSamples:
                     newPoint = True
 
-            randomSamples[i] = laser_points[sampleIndex] 
+            randomSamples[i] = laser_points[sampleIndex]
 
         # Fitting line to sampled points
         m, b = least_squares(randomSamples)
@@ -74,7 +71,7 @@ def findLines(laser_points, robotPose):
                 notAssociatedCount += 1
 
         if associatedCount >= CONSENSUS:
-            notInLine = notAssociated[ : notAssociatedCount]
+            notInLine = notAssociated[: notAssociatedCount]
 
             m, b = least_squares(associated, associatedCount)
 
@@ -86,7 +83,7 @@ def findLines(laser_points, robotPose):
         else:
             noTries += 1
 
-    #end
+    # end
 
     if len(lines) == 0:
         raise Exception()

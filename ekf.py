@@ -89,15 +89,16 @@ def update(
 def augment(
     X: np.array,  # System state
     P: np.array,  # Covariance matrix
-    z: np.array   # New landmarks
+    z: np.array,  # New landmarks
+    R: np.array   # Observation noise
 ) -> tuple[
     np.array,  # Augmented system state
     np.array   # Augmented covariance matrix
 ]:
 
     for lm in z:
-        r = z[0]  # Range
-        b = z[1]  # Bearing
+        r = z[0]            # Range
+        b = z[1]            # Bearing
         s = sin(X[2] + b)
         c = cos(X[2] + b)
 
@@ -121,7 +122,7 @@ def augment(
         P = np.pad(P, ((0, 2), (0, 2)), mode="constant")
 
         # Landmark Covariance TODO: WTF es R???
-        P[N:N+1, N:N+1] = Jxr @ P[0:2, 0:2] @ Jxr.T + Jz * R * Jz.T
+        P[N:N+1, N:N+1] = Jxr @ P[0:2, 0:2] @ Jxr.T + Jz @ R @ Jz.T
 
         # Robot-landmark covariance
         P[N:N+1, 0:2] = Jz @ P[0:2, 0:2]
