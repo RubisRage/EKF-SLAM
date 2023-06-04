@@ -2,6 +2,7 @@ from types import Odom, AssociatedLandmark
 from utils import pi_to_pi
 from models import observe_model
 from numpy.linalg import inv
+from math import sin, cos
 
 import numpy as np
 
@@ -85,5 +86,48 @@ def update(
     return X, P
 
 
-def augment():
-    pass
+def augment(
+    X: np.array,  # System state
+    P: np.array,  # Covariance matrix
+    z: np.array   # New landmarks
+) -> tuple[
+    np.array,  # Augmented system state
+    np.array   # Augmented covariance matrix
+]:
+
+    for lm in z:
+        r = z[0]  # Range
+        b = z[1]  # Bearing
+        s = sin(X[2] + b)
+        c = cos(X[2] + b)
+
+        # Augment system state
+        X = np.append(X, [X[0] + r*c, X[1] + r*s])
+
+        # Jacobian of the prediction model for landmarks
+        Jxr = np.array([
+            [1, 0, -r*s],
+            [0, 1,  r*c]
+        ])
+
+        # Jacobian of the prediction model for range-bearing
+        Jz = np.array([
+            [c, -r*s],
+            [s,  r*c]
+        ])
+
+        # Agument Covariance matrix
+        N = P.shape[0]
+        P = np.pad(P, ((0, 2), (0, 2)), mode="constant")
+
+        # Landmark Covariance TODO: WTF es R???
+        P[N:N+1, N:N+1] = Jxr @ P[0:2, 0:2] @ Jxr.T + Jz * R * Jz.T
+
+        # Robot-landmark covariance
+        P[N:N+1, 0:2] = Jz @ P[0:2, 0:2]
+        P[0:2, N:N+1] = P[N:N+1, 0:2].T
+
+        # Landmark-landmark covariance
+        if N > 3:
+            P[N:N+1, 3:N] = Jxr @ P[0:2, 3:N]
+            P[3:N, N:N+1] = P[N:N+1, 3:N].T
