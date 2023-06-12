@@ -1,4 +1,4 @@
-from types import AssociatedLandmark
+from slam_types import AssociatedLandmark
 from math import inf, log
 from models import observe_model
 from utils import pi_to_pi

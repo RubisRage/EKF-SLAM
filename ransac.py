@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-from utils import least_squares, distance_to_line
+from utils import least_squares, distance_to_line, cartesian_coords
+from slam_types import Laser
 import numpy as np
 import random
 
@@ -14,10 +15,12 @@ TOLERANCE = 0.05
 CONSENSUS = 40
 
 
-def findLines(laser_points, robotPose):
+def findLines(laser: Laser, X: np.array):
     """
     RANSAC line landmark detector.
     """
+
+    laser_points = cartesian_coords(laser, (X[0], X[1], X[2]))
 
     noRanges, _ = laser_points.shape
     noTries = 0
@@ -73,7 +76,7 @@ def findLines(laser_points, robotPose):
         if associatedCount >= CONSENSUS:
             notInLine = notAssociated[: notAssociatedCount]
 
-            m, b = least_squares(associated, associatedCount)
+            m, b = least_squares(associated)
 
             # TODO: Dont include associated and associatedCount
             # currently needed for display
@@ -90,4 +93,4 @@ def findLines(laser_points, robotPose):
 
     return lines
 
-#end 
+# end

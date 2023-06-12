@@ -1,4 +1,4 @@
-from types import Odom, AssociatedLandmark
+from slam_types import Odom, AssociatedLandmark
 from utils import pi_to_pi
 from models import observe_model
 from numpy.linalg import inv

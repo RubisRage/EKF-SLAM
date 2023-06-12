@@ -1,10 +1,9 @@
-from types import Odom
+from slam_types import Odom, Laser
 from collections import namedtuple
 
 import numpy as np
 
 Pose = namedtuple("Pose", "timestamp x y th vx vy vth")
-Laser = namedtuple("Laser", "timestamp start end step data")
 
 
 def loader(filename) -> tuple[Odom, Laser]:

@@ -1,8 +1,9 @@
 import numpy as np
+from slam_types import Laser
 from math import sqrt, cos, sin, pi
 
 
-def cartesian_coords(laser, robotPose=(0., 0., 0.)):
+def cartesian_coords(laser: Laser, robotPose=(0., 0., 0.)):
     """
     Converts a set of laser measurements in 2d points
     """

@@ -4,6 +4,7 @@ import config
 from ekf import predict, update, augment
 from loader import loader
 from associate import associate
+from ransac import findLines
 
 
 def main():
@@ -22,14 +23,16 @@ def main():
         # STEP 1: Predict
         X, P = predict(X, P, controls, Q, dt)
 
-        # STEP 2:
-        # lm = extract_landmarks()
-        z = None
+        z = findLines(laser, X)
         lm, nLm = associate(X, P, z, R, INNER_GATE, OUTER_GATE)
+
+        # STEP 2: Update
         X, P = update(X, P, lm, R)
 
-        # STEP 3:
+        # STEP 3: Augment
         X, P = augment(X, P, nLm, R)
+
+        # Draw map
 
 
 if __name__ == "__main__":
