@@ -3,6 +3,16 @@ from slam_types import Laser
 from math import sqrt, cos, sin, pi
 
 
+def range_bearing(point, robotPose: tuple[float, float, float]):
+    rx, ry, rth = robotPose
+    x, y = point
+
+    r = distance((rx, ry), (x, y))
+    b = pi_to_pi(np.arctan(y/x) - rth)
+
+    return r, b
+
+
 def cartesian_coords(laser: Laser, robotPose=(0., 0., 0.)):
     """
     Converts a set of laser measurements in 2d points

@@ -23,7 +23,7 @@ def associate(
     newLm = []
 
     nRb = 3                     # Number of vehicle state variables
-    nLm = (x.shape[0] - 3) / 2  # Number of already present features
+    nLm = (x.shape[0] - 3) // 2  # Number of already present features
 
     for lm in z:
         bestId = 0

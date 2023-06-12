@@ -3,3 +3,4 @@ __pycache__/*
 slam_for_dummies.pdf
 test.ipynb
 kalman_intro.pdf
+.idea/

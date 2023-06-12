@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-from utils import least_squares, distance_to_line, cartesian_coords
+from utils import (least_squares, distance_to_line,
+                   cartesian_coords, range_bearing)
 from slam_types import Laser
 import numpy as np
 import random
@@ -26,6 +27,7 @@ def findLines(laser: Laser, X: np.array):
     noTries = 0
 
     lines = []
+    landmarks = []
 
     notInLine = laser_points.copy()
 
@@ -81,6 +83,8 @@ def findLines(laser: Laser, X: np.array):
             # TODO: Dont include associated and associatedCount
             # currently needed for display
             lines.append((m, b, associated, associatedCount))
+            landmarks.append(range_bearing(
+                laser_points[centerIndex], (X[0], X[1], X[2])))
 
             noTries = 0
         else:
@@ -91,6 +95,6 @@ def findLines(laser: Laser, X: np.array):
     if len(lines) == 0:
         raise Exception()
 
-    return lines
+    return lines, landmarks
 
 # end

@@ -97,8 +97,8 @@ def augment(
 ]:
 
     for lm in z:
-        r = z[0]            # Range
-        b = z[1]            # Bearing
+        r = lm[0]            # Range
+        b = lm[1]            # Bearing
         s = sin(X[2] + b)
         c = cos(X[2] + b)
 

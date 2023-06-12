@@ -23,7 +23,7 @@ def main():
         # STEP 1: Predict
         X, P = predict(X, P, controls, Q, dt)
 
-        z = findLines(laser, X)
+        _, z = findLines(laser, X)
         lm, nLm = associate(X, P, z, R, INNER_GATE, OUTER_GATE)
 
         # STEP 2: Update
