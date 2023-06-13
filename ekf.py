@@ -48,8 +48,8 @@ def predict(
     # Update robot-landmark covariance Pri = A * Pri, Pir = Pri.T
     for idx in range(3, P.shape[0], 2):
         # P[0:2, idx:idx+2] = np.matmul(A, P[0:2, idx:idx+2])
-        P[0:2, idx:idx+2] = A @ P[0:2, idx:idx+2]
-        P[idx:idx+2, 0:2] = P[0:2, idx:idx+2].T
+        P[0:3, idx:idx+3] = A @ P[0:3, idx:idx+3]
+        P[idx:idx+3, 0:3] = P[0:3, idx:idx+3].T
 
     return X, P
 
@@ -121,14 +121,22 @@ def augment(
         N = P.shape[0]
         P = np.pad(P, ((0, 2), (0, 2)), mode="constant")
 
-        # Landmark Covariance TODO: WTF es R???
-        P[N:N+1, N:N+1] = Jxr @ P[0:2, 0:2] @ Jxr.T + Jz @ R @ Jz.T
+        # Landmark Covariance
+        P[N:N+2, N:N+2] = Jxr @ P[0:3, 0:3] @ Jxr.T + Jz @ R @ Jz.T
 
         # Robot-landmark covariance
-        P[N:N+1, 0:2] = Jz @ P[0:2, 0:2]
-        P[0:2, N:N+1] = P[N:N+1, 0:2].T
+        P[N:N+2, 0:2] = Jz @ P[0:2, 0:2]
+        P[0:2, N:N+2] = P[N:N+2, 0:2].T
 
         # Landmark-landmark covariance
+        # if len>3
+        #   rnm= 4:len;
+        #   P(rng,rnm)= Gv*P(1:3,rnm); % map to feature xcorr
+        #   P(rnm,rng)= P(rng,rnm)';
+        # end
+
         if N > 3:
-            P[N:N+1, 3:N] = Jxr @ P[0:2, 3:N]
-            P[3:N, N:N+1] = P[N:N+1, 3:N].T
+            P[N:N+2, 3:N] = Jxr @ P[0:3, 3:N]
+            P[3:N, N:N+2] = P[N:N+2, 3:N].T
+
+    return X, P
