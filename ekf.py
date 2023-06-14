@@ -74,6 +74,10 @@ def update(
         # Compute Kalman gain: P * H' * (H * P * H.T + V * R * V.T)^-1
         VRV = v @ R @ v.T
         S = H @ P @ H.T + VRV
+
+        if 0 <= np.linalg.det(S) <= 0.25:
+            print(np.linalg.det(S))
+
         K = P @ H.T @ inv(S)
 
         # Update state vector

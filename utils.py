@@ -15,7 +15,8 @@ def range_bearing(point, robotPose: tuple[float, float, float]):
 
 def cartesian_coords(laser: Laser, robotPose=(0., 0., 0.)):
     """
-    Converts a set of laser measurements in 2d points
+    Converts a set of laser measurements in 2d points in
+    cartesian coordinates.
     """
     _, start, _, step, laserdata = laser
 
@@ -67,5 +68,5 @@ def pi_to_pi(angle):
         return angle - 2*pi
     elif angle < -pi:
         return angle + 2*pi
-    
+
     return angle

@@ -80,8 +80,6 @@ def findLines(laser: Laser, X: np.array):
 
             m, b = least_squares(associated)
 
-            # TODO: Dont include associated and associatedCount
-            # currently needed for display
             lines.append((m, b, associated, associatedCount))
             landmarks.append(range_bearing(
                 laser_points[centerIndex], (X[0], X[1], X[2])))
