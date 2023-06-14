@@ -1,6 +1,6 @@
 import numpy as np
 from slam_types import Laser
-from math import sqrt, cos, sin, pi
+from math import sqrt, cos, sin, pi, inf
 
 
 def range_bearing(point, robotPose: tuple[float, float, float]):
@@ -28,8 +28,10 @@ def cartesian_coords(laser: Laser, robotPose=(0., 0., 0.)):
     degreeResolution = step
 
     for i, r in enumerate(laserdata):
-        points[i][0] = r * cos(theta + th) - x
-        points[i][1] = r * -sin(theta + th) - y
+        if r != inf:
+            points[i][0] = r * cos(theta + th) - x
+            points[i][1] = r * -sin(theta + th) - y
+
         theta += degreeResolution
 
     return points

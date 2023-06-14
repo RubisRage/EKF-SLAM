@@ -1,5 +1,6 @@
 from slam_types import Odom, Laser
 from collections import namedtuple
+from math import inf
 
 import numpy as np
 
@@ -42,9 +43,12 @@ def loader(filename) -> tuple[Odom, Laser]:
                         float(vth)
                     )
                 case ["laser", _, _, _, _, start, end, step, max, _, *data]:
-                    data = filter(
-                        lambda v: v != 0 and v <= float(max),
-                        map(lambda v: float(v), data)
+                    data = map(
+                        lambda v: inf if v >= float(max) else v,
+                        filter(
+                            lambda v: v != 0,
+                            map(lambda v: float(v), data)
+                        )
                     )
 
                     np_data = np.array(list(data), dtype=np.float64)
@@ -77,7 +81,9 @@ def main():
     data_loader = loader("medium_nd_5.log")
 
     for odom, laser in data_loader:
-        print(f"{odom=}", f"{laser.timestamp}", sep="\n")
+        # print(f"{odom=}", f"{laser.timestamp}", sep="\n")
+        print(laser.data)
+        break
 
 
 if __name__ == "__main__":

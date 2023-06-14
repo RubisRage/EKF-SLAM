@@ -22,6 +22,7 @@ def findLines(laser: Laser, X: np.array):
     """
 
     laser_points = cartesian_coords(laser, (X[0], X[1], X[2]))
+    # laser_points = cartesian_coords(laser)
 
     noRanges, _ = laser_points.shape
     noTries = 0
@@ -40,6 +41,7 @@ def findLines(laser: Laser, X: np.array):
         )
 
         randomSamples[0] = laser_points[centerIndex]
+        # TODO: Keep track of indices instead of checking for values
 
         for i in range(1, MAX_SAMPLES):
             newPoint = False
