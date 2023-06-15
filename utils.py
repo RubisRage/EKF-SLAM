@@ -21,20 +21,21 @@ def cartesian_coords(laser: Laser, robotPose=(0., 0., 0.)):
     _, start, _, step, laserdata = laser
 
     x, y, th = robotPose
-
-    points = np.zeros((laserdata.shape[0], 2))
+    points = []
 
     theta = start
     degreeResolution = step
 
+    # TODO: Different indices for laserdata and points
+
     for i, r in enumerate(laserdata):
+        r = laserdata[i]
         if r != inf:
-            points[i][0] = r * cos(theta + th) - x
-            points[i][1] = r * -sin(theta + th) - y
+            points.append((r * cos(theta + th) - x, r * -sin(theta + th) - y))
 
         theta += degreeResolution
 
-    return points
+    return np.array(points)
 
 
 def least_squares(points) -> tuple[float, float]:

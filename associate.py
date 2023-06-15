@@ -31,7 +31,7 @@ def associate(
         outer = inf
 
         # For each present feature
-        for fid in range(nRb, nLm):
+        for fid in range(nRb, nLm, 2):
             nis, nd = compute_association(x, P, lm, fid, R)
 
             if nis < innerGate and nd < bestN:

@@ -16,13 +16,10 @@ TOLERANCE = 0.05
 CONSENSUS = 40
 
 
-def findLines(laser: Laser, X: np.array):
+def findLines(laser_points: Laser, X: np.array):
     """
     RANSAC line landmark detector.
     """
-
-    laser_points = cartesian_coords(laser, (X[0], X[1], X[2]))
-    # laser_points = cartesian_coords(laser)
 
     noRanges, _ = laser_points.shape
     noTries = 0

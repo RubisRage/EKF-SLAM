@@ -18,7 +18,7 @@ def observe_model(
     H = np.zeros((2, X.shape[0]))
 
     xdiff = X[fid] - X[0]
-    ydiff = X[fid] - X[1]
+    ydiff = X[fid+1] - X[1]
     distance2 = xdiff**2 + ydiff**2
     distance = sqrt(distance2)
     xd = xdiff / distance

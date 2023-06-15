@@ -76,7 +76,8 @@ def update(
         S = H @ P @ H.T + VRV
 
         if 0 <= np.linalg.det(S) <= 0.25:
-            print(np.linalg.det(S))
+            # print(np.linalg.det(S))
+            pass
 
         K = P @ H.T @ inv(S)
 
