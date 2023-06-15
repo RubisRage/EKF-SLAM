@@ -6,8 +6,8 @@ dt = 0.1  # seconds
 
 # FRAME CONFIG ======================
 
-frame_width = 640
-frame_height = 640
+frame_width = 1000
+frame_height = 1000
 meters_to_px_ratio = frame_width / 10
 
 # ===================================

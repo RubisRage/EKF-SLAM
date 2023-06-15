@@ -3,6 +3,12 @@ from slam_types import Laser
 from math import sqrt, cos, sin, pi, inf
 
 
+def angle_between_vectors(v1, v2):
+    return np.arccos(
+            np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+           )
+
+
 def range_bearing(point, robotPose: tuple[float, float, float]):
     rx, ry, rth = robotPose
     x, y = point
