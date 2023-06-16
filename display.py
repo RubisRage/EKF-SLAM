@@ -42,3 +42,10 @@ def display_extracted_lines(frame: np.array, X: np.array, lines, z):
         p2 = to_display_space(
             associated[associatedCount-1], (X[0], X[1], X[2]))
         cv2.line(frame, p1, p2, (0, 0, 255), 2)
+        
+def display_mesh(frame: np.array):
+    for y in range(0, config.frame_height, 100):
+        cv2.line(frame, (0, y), (config.frame_height, y), (128, 128, 128), 1)
+
+    for x in range(0, config.frame_width, 100):
+        cv2.line(frame, (x, 0), (x, config.frame_width), (128, 128, 128), 1)

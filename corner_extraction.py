@@ -106,9 +106,8 @@ def draw_lines(lines, laser_points, laser, show_border=False, show_text=False):
     pose = (0., 0., 0.)
     frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
 
-    draw_mesh(frame)
-
     display.display_raw_points(frame, pose, laser)
+    display.display_mesh(frame)
 
     for i, line in enumerate(lines):
         i1, i2 = line
@@ -136,21 +135,6 @@ def draw_lines(lines, laser_points, laser, show_border=False, show_text=False):
         pass
 
     del frame
-
-
-def draw_mesh(frame):
-    meter = int(config.meters_to_px_ratio)
-    horizontal_lines = config.frame_height // meter
-    vertical_lines = config.frame_width // meter
-
-    color = (150, 150, 150)
-
-    for i in range(horizontal_lines):
-        cv2.line(frame, (0, i*meter), (config.frame_width, i*meter), color, 3)
-
-    for i in range(vertical_lines):
-        cv2.line(frame, (i*meter, 0), (i*meter, config.frame_height), color, 3)
-
 
 def main():
     import loader
