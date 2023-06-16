@@ -126,10 +126,9 @@ def draw_lines(lines, laser_points, laser, show_border=False, show_text=False):
             cv2.circle(frame, p2, 3, (0, 255, 0), cv2.FILLED)
 
         if show_text:
-            cv2.putText(frame, f"{i1}, {i2}", (p2[0], p2[1] + (20 * (1 if i & 1 else -1))),
+            cv2.putText(frame, f"{i1}, {i2}",
+                        (p2[0], p2[1] + (20 * (1 if i & 1 else -1))),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-
-        n = i
 
     cv2.imshow("Corner extraction test", frame)
 
