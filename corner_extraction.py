@@ -121,7 +121,10 @@ def corner_extraction(lines: list, laser_points):
             dp2 = distance(laser_points[lines[j][0]],(x,y))
             if dp1 < dpmax and dp2 < dpmax:
                 Vcorners[-1] = (x, y)
-            j = j + 1
+            if j+1 < len(lines):
+                j = j + 1
+            else:
+                break
             d = distance(laser_points[lines[i][1]],laser_points[lines[j][0]])
             v1 = np.array(laser_points[lines[j][1]]) - \
                 np.array(laser_points[lines[j][0]])
@@ -132,6 +135,7 @@ def corner_extraction(lines: list, laser_points):
             alfa = angle_between_vectors(v1, v2)                
             pass
         i=i+1
+    return Vcorners
 
 def main():
     import loader
@@ -141,15 +145,20 @@ def main():
 
     data_loader = loader.loader(config.log)
 
+    frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
+    pose = (0., 0., 0.)
+    #laser_points = cartesian_coords(laser, pose)
+
     for _, laser in data_loader:
 
+        display.display_raw_points(frame, pose, laser)
         laser_points = cartesian_coords(laser)
 
         lines = line_segmentation(laser_points, laser.data)
         lines = line_merging(lines, laser_points, laser)
         Vcorner = corner_extraction(lines,laser_points)
 
-        display.draw_lines(lines, laser_points, laser)
+        display.draw_lines(frame, lines, laser_points, laser, Vcorner)
 
     while cv2.waitKey(0) != ord('q'):
         pass
