@@ -2,8 +2,6 @@ from utils import (distance, cartesian_coords,
                    angle_between_vectors, pi_to_pi, distance_to_line)
 from math import pi
 import numpy as np
-import cv2
-import config
 
 
 def line_segmentation(laser_points, laser_data):
@@ -89,8 +87,6 @@ def line_merging(lines, laser_points, laser):
 
         alfa = angle_between_vectors(v1, v2)
 
-        # draw_lines([merged_lines[n], lines[i]], laser_points, laser)
-
         if d < dmax and alfa < alfa_max:
             merged_lines[n][1] = lines[i][1]
         else:
@@ -100,44 +96,11 @@ def line_merging(lines, laser_points, laser):
     return list(filter(lambda line: line[0] != line[1]-1, merged_lines))
 
 
-def draw_lines(lines, laser_points, laser, show_border=False, show_text=False):
-    import display
-
-    pose = (0., 0., 0.)
-    frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
-
-    display.display_raw_points(frame, pose, laser)
-    display.display_mesh(frame)
-
-    for i, line in enumerate(lines):
-        i1, i2 = line
-
-        p1 = display.to_display_space(laser_points[i1])
-        p2 = display.to_display_space(laser_points[i2])
-
-        # color = (randrange(0, 255), randrange(0, 255), randrange(0, 255))
-        color = (0, 0, 255)
-
-        cv2.line(frame, p1, p2, color, 1)
-
-        if show_border:
-            cv2.circle(frame, p1, 3, (255, 0, 0), cv2.FILLED)
-            cv2.circle(frame, p2, 3, (0, 255, 0), cv2.FILLED)
-
-        if show_text:
-            cv2.putText(frame, f"{i1}, {i2}",
-                        (p2[0], p2[1] + (20 * (1 if i & 1 else -1))),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-
-    cv2.imshow("Corner extraction test", frame)
-
-    while cv2.waitKey(0) != ord(' '):
-        pass
-
-    del frame
-
 def main():
     import loader
+    import display
+    import cv2
+    import config
 
     data_loader = loader.loader(config.log)
 
@@ -148,7 +111,10 @@ def main():
         lines = line_segmentation(laser_points, laser.data)
         lines = line_merging(lines, laser_points, laser)
 
-        draw_lines(lines, laser_points, laser)
+        display.draw_lines(lines, laser_points, laser)
+
+    while cv2.waitKey(0) != ord('q'):
+        pass
 
     cv2.destroyAllWindows()
 
