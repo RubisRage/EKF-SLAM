@@ -7,14 +7,14 @@ import numpy as np
 from math import cos, sin
 
 
-def draw_lines(frame, lines, laser_points, laser, show_border=False,
+def draw_lines(frame, lines, laser_points, laser, Vcorner: list, show_border=False,
                show_text=False):
 
     pose = (0., 0., 0.)
 
     display_raw_points(frame, pose, laser)
     display_mesh(frame)
-    #display_corner(frame, Vcorner)
+    display_corner(frame, Vcorner)
 
     for i, line in enumerate(lines):
         i1, i2 = line
@@ -75,13 +75,14 @@ def display_extracted_lines(frame: np.array, X: np.array, lines, z):
 
 
 def display_mesh(frame: np.array):
-    for y in range(0, config.frame_height, 100):
+    for y in range(0, config.frame_height, 10000):
         cv2.line(frame, (0, y), (config.frame_height, y), (128, 128, 128), 1)
 
-    for x in range(0, config.frame_width, 100):
+    for x in range(0, config.frame_width, 10000):
         cv2.line(frame, (x, 0), (x, config.frame_width), (128, 128, 128), 1)
 
 def display_corner(frame, Vcorner):
     for corner in Vcorner:
-        color = (255, 0, 255)
-        cv2.circle(frame, to_display_space(corner), 5, color, cv2.FILLED)
+        color = (255, 192, 203) #pink
+        p = to_display_space(corner)
+        cv2.circle(frame, p, 10, color, -1)
