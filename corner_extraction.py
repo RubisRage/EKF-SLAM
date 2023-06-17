@@ -96,6 +96,19 @@ def line_merging(lines, laser_points, laser):
     return list(filter(lambda line: line[0] != line[1]-1, merged_lines))
 
 
+def corner_extraction(lines, laser_points):
+
+    for i in range(len(lines)):
+        j = i+1
+
+        end_point = laser_points[lines[i][1]]
+        start_point = laser_points[lines[j][0]]
+
+        d = distance(end_point, start_point)
+
+    pass
+
+
 def main():
     import loader
     import display
@@ -105,16 +118,20 @@ def main():
     data_loader = loader.loader(config.log)
 
     for _, laser in data_loader:
-
         laser_points = cartesian_coords(laser)
+        frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
 
         lines = line_segmentation(laser_points, laser.data)
         lines = line_merging(lines, laser_points, laser)
 
-        display.draw_lines(lines, laser_points, laser)
+        display.draw_lines(frame, lines, laser_points, laser, show_border=True)
 
-    while cv2.waitKey(0) != ord('q'):
-        pass
+        cv2.imshow("Corner extraction test", frame)
+
+        while cv2.waitKey(0) != ord('q'):
+            pass
+
+
 
     cv2.destroyAllWindows()
 
