@@ -75,14 +75,13 @@ def display_extracted_lines(frame: np.array, X: np.array, lines, z):
 
 
 def display_mesh(frame: np.array):
-    for y in range(0, config.frame_height, 10000):
-        cv2.line(frame, (0, y), (config.frame_height, y), (128, 128, 128), 1)
+    for y in range(0, config.frame_height, 100):
+        cv2.line(frame, (0, y), (config.frame_height, y), (0,128, 0), 1)
 
-    for x in range(0, config.frame_width, 10000):
-        cv2.line(frame, (x, 0), (x, config.frame_width), (128, 128, 128), 1)
+    for x in range(0, config.frame_width, 100):
+        cv2.line(frame, (x, 0), (x, config.frame_width), (0, 128, 0), 1)
 
 def display_corner(frame, Vcorner):
     for corner in Vcorner:
         color = (255, 192, 203) #pink
-        p = to_display_space(corner)
-        cv2.circle(frame, p, 10, color, -1)
+        cv2.circle(frame, to_display_space(corner), 10, color, -1)

@@ -99,37 +99,3 @@ def intersection_two_lines(l1, l2, laser_points):
     intersection_y = numerator_y / denominator
 
     return intersection_x, intersection_y
-#    a1, b1 = l1
-#    a2, b2 = l2
-#
-#    x1 = laser_points[a1][0]
-#    y1 = laser_points[a1][1]
-#    x2 = laser_points[b1][0]
-#    y2 = laser_points[b1][1]
-#    x3 = laser_points[a2][0]
-#    y3 = laser_points[a2][1]
-#    x4 = laser_points[b2][0]
-#    y4 = laser_points[b2][1]
-#
-#    #Pendiente
-#    px1 = y2-y1
-#    px2 = x2-x1
-#    py1 = y4-y3
-#    py2 = x4-x3
-#    m1 = px1/px2
-#    m2 = py1/py2
-#
-#    #Parallel
-#    if m1==m2:
-#        return None
-#   # Construir el sistema de ecuaciones
-#    # Construir el sistema de ecuaciones
-#    sistema_ecuaciones = np.array([[x2 - x1, -(x4 - x3)], [y2 - y1, -(y4 - y3)]])
-#    valores_independientes = np.array([x3 - x1, y3 - y1])
-#    # Resolver el sistema de ecuaciones
-#    try:
-#        interseccion = np.linalg.solve(sistema_ecuaciones, valores_independientes)
-#        return interseccion[0], interseccion[1]  # Retorna las coordenadas (x, y) de la intersección
-#    except np.linalg.LinAlgError:
-#        # Las líneas son coincidentes
-#        return None 

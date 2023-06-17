@@ -140,8 +140,8 @@ def corner_extraction(lines: list, laser_points):
 
 def corner_extraction(lines: list, laser_points):
     Vcorners = []
-    dmin = 4
-    dpmax = 3
+    dmin = 1
+    dpmax = 1
     alfa_min = 0.001
     alfa_max = 93
     for i in range(len(lines)-1):
@@ -181,14 +181,12 @@ def main():
         Vcorner = corner_extraction(lines,laser_points)
         
         print("Esquinas encontradas: ", len(Vcorner))
-        print(Vcorner)
+        print("Lineas encontradas: ", len(lines))
         
         display.draw_lines(frame, lines, laser_points, laser, Vcorner, show_border=True)
 
-        zoomed_image = cv2.resize(frame, None, fx=5.0, fy=5.0, interpolation=cv2.INTER_LINEAR)
 
         cv2.imshow("Corner extraction test", frame)
-        cv2.imshow("Imagen con zoom", zoomed_image)
         
         while cv2.waitKey(0) != ord('q'):
             pass
