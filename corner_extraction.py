@@ -137,6 +137,7 @@ def corner_extraction(lines: list, laser_points):
         i=i+1
     return Vcorners
 
+
 def main():
     import loader
     import display
@@ -145,20 +146,15 @@ def main():
 
     data_loader = loader.loader(config.log)
 
-    frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
-    pose = (0., 0., 0.)
-    #laser_points = cartesian_coords(laser, pose)
-
     for _, laser in data_loader:
 
-        display.display_raw_points(frame, pose, laser)
         laser_points = cartesian_coords(laser)
 
         lines = line_segmentation(laser_points, laser.data)
         lines = line_merging(lines, laser_points, laser)
         Vcorner = corner_extraction(lines,laser_points)
 
-        display.draw_lines(frame, lines, laser_points, laser, Vcorner)
+        display.draw_lines(lines, laser_points, laser)
 
     while cv2.waitKey(0) != ord('q'):
         pass

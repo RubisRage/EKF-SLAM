@@ -7,14 +7,14 @@ import numpy as np
 from math import cos, sin
 
 
-def draw_lines(frame, lines, laser_points, laser, Vcorner, show_border=False,
+def draw_lines(frame, lines, laser_points, laser, show_border=False,
                show_text=False):
 
     pose = (0., 0., 0.)
 
     display_raw_points(frame, pose, laser)
     display_mesh(frame)
-    display_corner(frame, Vcorner)
+    #display_corner(frame, Vcorner)
 
     for i, line in enumerate(lines):
         i1, i2 = line
