@@ -1,20 +1,14 @@
 from slam_types import Laser
 from utils import cartesian_coords
+from math import cos, sin
 
 import cv2
 import config
 import numpy as np
-from math import cos, sin
 
 
-def draw_lines(frame, lines, laser_points, laser, Vcorner: list, show_border=False,
+def draw_lines(frame, lines, laser_points, laser, show_border=False,
                show_text=False):
-
-    pose = (0., 0., 0.)
-
-    display_raw_points(frame, pose, laser)
-    display_mesh(frame)
-    display_corner(frame, Vcorner)
 
     for i, line in enumerate(lines):
         i1, i2 = line
@@ -34,12 +28,9 @@ def draw_lines(frame, lines, laser_points, laser, Vcorner: list, show_border=Fal
             cv2.putText(frame, f"{i1}, {i2}",
                         (p2[0], p2[1] + (20 * (1 if i & 1 else -1))),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-    
 
 
 def to_display_space(p, pose=(.0, .0, .0)):
-    # TODO: Is there a need for translation to global coords in this
-    # function?
     x, y, th = pose
 
     R = np.array([
@@ -53,36 +44,25 @@ def to_display_space(p, pose=(.0, .0, .0)):
     return [int(tp[0]), int(tp[1])]
 
 
-def display_raw_points(frame: np.array, X: np.array, laser: Laser):
+def draw_raw_points(frame: np.array, X: np.array, laser: Laser):
 
     cv2.circle(frame, (int(config.meters_to_px_ratio),
                        config.frame_height // 2), 5, (0, 0, 255), cv2.FILLED)
 
-    # for p in cartesian_coords(laser, (X[0], X[1], X[2])):
     for p in cartesian_coords(laser):
         cv2.circle(frame, to_display_space(p), 2, (0, 0, 0), cv2.FILLED)
 
 
-def display_extracted_lines(frame: np.array, X: np.array, lines, z):
-
-    for line in lines:
-        m, b, associated, associatedCount = line
-
-        p1 = to_display_space(associated[0], (X[0], X[1], X[2]))
-        p2 = to_display_space(
-            associated[associatedCount-1], (X[0], X[1], X[2]))
-        cv2.line(frame, p1, p2, (0, 0, 255), 2)
-
-
-def display_mesh(frame: np.array):
+def draw_mesh(frame: np.array):
     for y in range(0, config.frame_height, 100):
-        cv2.line(frame, (0, y), (config.frame_height, y), (0,128, 0), 1)
+        cv2.line(frame, (0, y), (config.frame_height, y), (0, 128, 0), 1)
 
     for x in range(0, config.frame_width, 100):
         cv2.line(frame, (x, 0), (x, config.frame_width), (0, 128, 0), 1)
 
-def display_corner(frame, Vcorner):
+
+def draw_corner(frame, Vcorner):
+    color = (255, 0, 255)
+
     for corner in Vcorner:
-        color = (255, 192, 203) #pink
-        x, y = corner
-        cv2.circle(frame, to_display_space((int(x),int(y))), 10, color, -1)
+        cv2.circle(frame, to_display_space(corner), 3, color, -1)

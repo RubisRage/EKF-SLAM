@@ -1,6 +1,5 @@
-from utils import (distance, cartesian_coords,
-                   angle_between_vectors, pi_to_pi, distance_to_line,
-                   intersection_two_lines)
+from utils import (distance, cartesian_coords, angle_between_vectors, pi_to_pi,
+                   distance_to_line, intersection_two_lines)
 from math import pi
 import numpy as np
 
@@ -103,9 +102,10 @@ def corner_extraction(lines: list, laser_points):
     dpmax = 1
     alfa_min = 0.001
     alfa_max = 93
+
     for i in range(len(lines)-1):
         j = i+1
-        d = distance(laser_points[lines[i][1]],laser_points[lines[j][0]])
+        d = distance(laser_points[lines[i][1]], laser_points[lines[j][0]])
         v1 = np.array(laser_points[lines[j][1]]) - \
             np.array(laser_points[lines[j][0]])
 
@@ -113,13 +113,14 @@ def corner_extraction(lines: list, laser_points):
             np.array(laser_points[lines[i][0]])
 
         alfa = angle_between_vectors(v1, v2)
-    
+
         if d < dmin and alfa_min < alfa < alfa_max:
-            x, y = intersection_two_lines(lines[i],lines[j],laser_points)
-            dp1 = distance(laser_points[lines[i][1]],(x,y))
-            dp2 = distance(laser_points[lines[j][0]],(x,y))
+            x, y = intersection_two_lines(lines[i], lines[j], laser_points)
+            dp1 = distance(laser_points[lines[i][1]], (x, y))
+            dp2 = distance(laser_points[lines[j][0]], (x, y))
             if dp1 < dpmax and dp2 < dpmax:
                 Vcorners.append((x, y))
+
     return Vcorners
 
 
@@ -137,20 +138,21 @@ def main():
 
         lines = line_segmentation(laser_points, laser.data)
         lines = line_merging(lines, laser_points, laser)
-        Vcorner = corner_extraction(lines,laser_points)
-        
+        Vcorner = corner_extraction(lines, laser_points)
+
         print("Esquinas encontradas: ", len(Vcorner))
         print("Lineas encontradas: ", len(lines))
-        
-        display.draw_lines(frame, lines, laser_points, laser, Vcorner, show_border=True)
 
+        display.draw_mesh(frame)
+        display.draw_raw_points(frame, None, laser)
+        display.draw_lines(frame, lines, laser_points,
+                           laser, show_border=True)
+        display.draw_corner(frame, Vcorner)
 
         cv2.imshow("Corner extraction test", frame)
-        
+
         while cv2.waitKey(0) != ord('q'):
             pass
-
-
 
     cv2.destroyAllWindows()
 

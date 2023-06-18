@@ -5,8 +5,8 @@ from math import sqrt, cos, sin, pi, inf
 
 def angle_between_vectors(v1, v2):
     return np.arccos(
-            np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
-           )
+        np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+    )
 
 
 def range_bearing(point, robotPose: tuple[float, float, float]):
@@ -80,37 +80,35 @@ def pi_to_pi(angle):
 
     return angle
 
-#def intersection_two_lines(l1, l2, laser_points = False):
+
 def intersection_two_lines(l1, l2, laser_points):
-    #if laser_points != None:
     x1, y1 = laser_points[l1[0]]
     x2, y2 = laser_points[l1[1]]
     x3, y3 = laser_points[l2[0]]
     x4, y4 = laser_points[l2[1]]
-#    else:   
-#        x1, y1 = l1[0]
-#        x2, y2 = l1[1]
-#        x3, y3 = l2[0]
-#        x4, y4 = l2[1]
 
-    # Calcula los valores para la fórmula de intersección de rectas
     denominator = ((x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4))
+
+    # Parallel line, there is no intersection
     if denominator == 0:
-        # Las rectas son paralelas, no hay intersección
         return None
 
-    numerator_x = ((x1 * y2 - y1 * x2) * (x3 - x4)) - ((x1 - x2) * (x3 * y4 - y3 * x4))
-    numerator_y = ((x1 * y2 - y1 * x2) * (y3 - y4)) - ((y1 - y2) * (x3 * y4 - y3 * x4))
+    numerator_x = ((x1 * y2 - y1 * x2) * (x3 - x4)) - \
+        ((x1 - x2) * (x3 * y4 - y3 * x4))
+    numerator_y = ((x1 * y2 - y1 * x2) * (y3 - y4)) - \
+        ((y1 - y2) * (x3 * y4 - y3 * x4))
 
     intersection_x = numerator_x / denominator
     intersection_y = numerator_y / denominator
 
     return intersection_x, intersection_y
 
+
 def main():
 
+    x, y = intersection_two_lines([(0, 4), (-1, 3)], [(0, 0), (-1, 1)])
+    print(x, y)  # (2,2) Da correcto.
 
-    x, y = intersection_two_lines([(0,4), (-1,3)],[(0,0),(-1,1)])
-    print(x,y)  #(2,2) Da correcto.
+
 if __name__ == "__main__":
     main()
