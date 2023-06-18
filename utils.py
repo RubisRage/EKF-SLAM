@@ -9,17 +9,34 @@ def angle_between_vectors(v1, v2):
     )
 
 
-def range_bearing(point, robotPose: tuple[float, float, float]):
+def range_bearing(cartesian_points, robotPose: tuple[float, float, float]):
     rx, ry, rth = robotPose
-    x, y = point
 
-    r = distance((rx, ry), (x, y))
-    b = pi_to_pi(np.arctan(y/x) - rth)
+    polar_points = np.ndarray((len(cartesian_points), 2), dtype=np.double)
 
-    return r, b
+    for i, point in enumerate(cartesian_points):
+        x, y = point
+
+        polar_points[i][0] = distance((rx, ry), (x, y))
+        polar_points[i][1] = pi_to_pi(np.arctan(y/x) - rth)
+
+    return polar_points
 
 
-def cartesian_coords(laser: Laser, robotPose=(0., 0., 0.)):
+def cartesian_coords(polar_points, robotPose=(0., 0., 0.)):
+    rx, ry, rth = robotPose
+
+    cartesian_points = np.ndarray((len(polar_points), 2), dtype=np.double)
+
+    for i, p in enumerate(polar_points):
+        r, b = p
+        cartesian_points[i][0] = r * cos(b + rth) - rx
+        cartesian_points[i][1] = r * -sin(b + rth) - ry
+
+    return cartesian_points
+
+
+def process_laser(laser: Laser, robotPose=(0., 0., 0.)):
     """
     Converts a set of laser measurements in 2d points in
     cartesian coordinates.
@@ -34,8 +51,7 @@ def cartesian_coords(laser: Laser, robotPose=(0., 0., 0.)):
 
     # TODO: Different indices for laserdata and points
 
-    for i, r in enumerate(laserdata):
-        r = laserdata[i]
+    for r in laserdata:
         if r != inf:
             points.append((r * cos(theta + th) - x, r * -sin(theta + th) - y))
 

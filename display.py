@@ -44,13 +44,10 @@ def to_display_space(p, pose=(.0, .0, .0)):
     return [int(tp[0]), int(tp[1])]
 
 
-def draw_raw_points(frame: np.array, X: np.array, laser: Laser):
+def draw_points(frame: np.array, points, color=(0, 0, 0)):
 
-    cv2.circle(frame, (int(config.meters_to_px_ratio),
-                       config.frame_height // 2), 5, (0, 0, 255), cv2.FILLED)
-
-    for p in cartesian_coords(laser):
-        cv2.circle(frame, to_display_space(p), 2, (0, 0, 0), cv2.FILLED)
+    for p in points:
+        cv2.circle(frame, to_display_space(p), 2, color, cv2.FILLED)
 
 
 def draw_mesh(frame: np.array):

@@ -7,8 +7,8 @@ import random
 from ekf import predict, update, augment
 from loader import loader
 from associate import associate
-from extract_landmarks import extract_landmarks
-from display import display_raw_points, display_extracted_lines
+from corner_extraction import find_corners
+from utils import cartesian_coords, process_laser
 
 
 def main():
@@ -28,39 +28,44 @@ def main():
         # STEP 1: Predict
         X, P = predict(X, P, controls, Q, dt)
 
-        print(f"Controls: {controls}")
+        laser_points = process_laser(laser, X[:3])
 
-        print(f"Post predict: {X[: 3]}")
-
-        lines, z = extract_landmarks(laser, X)
-
-        frame = np.ones((config.frame_width, config.frame_height, 3)) * 255
-
-        display_raw_points(frame, X, laser)
-        display_extracted_lines(frame, X, lines, z)
-
-        cv2.imshow("Grid map", frame)
-        key = cv2.waitKey(0)
-
-        if key == ord('q'):
-            break
+        z = find_corners(X, laser_points, laser.data)
 
         lm, nLm = associate(X, P, z, R, INNER_GATE, OUTER_GATE)
+
+        print(f"Associated: {len(lm)}, New: {len(nLm)}")
+        display_helper(X, laser_points, z, lm, nLm)
 
         # STEP 2: Update
         X, P = update(X, P, lm, R)
 
-        print(f"Post update: {X[: 3]}")
-
         # STEP 3: Augment
         X, P = augment(X, P, nLm, R)
-
-        print(f"Post augment: {X[: 3]}")
-        print("================")
 
         # Draw map
 
     cv2.destroyAllWindows()
+
+
+def display_helper(X, laser_points, corners, lm, nLm):
+    from display import draw_points
+
+    frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
+
+    # Draw robot
+    draw_points(frame, [(0, 0)], color=(0, 0, 255))
+
+    # Draw observed points
+    draw_points(frame, laser_points)
+
+    # Draw associated landmarks
+    draw_points(frame, cartesian_coords(np.array(map(lambda lm: lm.z, lm))))
+
+    cv2.imshow("Association test", frame)
+
+    while cv2.waitKey() != ord(' '):
+        pass
 
 
 if __name__ == "__main__":

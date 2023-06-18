@@ -1,5 +1,5 @@
 from utils import (distance, cartesian_coords, angle_between_vectors, pi_to_pi,
-                   distance_to_line, intersection_two_lines)
+                   distance_to_line, intersection_two_lines, range_bearing)
 from math import pi
 import numpy as np
 
@@ -65,7 +65,7 @@ def line_segmentation(laser_points, laser_data):
     return third_phase_lines
 
 
-def line_merging(lines, laser_points, laser):
+def line_merging(lines, laser_points):
 
     dmax = 1.5  # meters
     alfa_max = pi_to_pi(5*pi/180)  # radians
@@ -124,6 +124,14 @@ def corner_extraction(lines: list, laser_points):
     return Vcorners
 
 
+def find_corners(X, laser_points, laser_data):
+    segmented_lines = line_segmentation(laser_points, laser_data)
+    merged_lines = line_merging(segmented_lines, laser_points)
+    corners = corner_extraction(merged_lines, laser_points)
+
+    return range_bearing(corners, X[:3])
+
+
 def main():
     import loader
     import display
@@ -137,7 +145,7 @@ def main():
         frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
 
         lines = line_segmentation(laser_points, laser.data)
-        lines = line_merging(lines, laser_points, laser)
+        lines = line_merging(lines, laser_points)
         Vcorner = corner_extraction(lines, laser_points)
 
         print("Esquinas encontradas: ", len(Vcorner))
