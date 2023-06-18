@@ -84,4 +84,5 @@ def display_mesh(frame: np.array):
 def display_corner(frame, Vcorner):
     for corner in Vcorner:
         color = (255, 192, 203) #pink
-        cv2.circle(frame, to_display_space(corner), 10, color, -1)
+        x, y = corner
+        cv2.circle(frame, to_display_space((int(x),int(y))), 10, color, -1)

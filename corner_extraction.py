@@ -96,47 +96,6 @@ def line_merging(lines, laser_points, laser):
 
     return list(filter(lambda line: line[0] != line[1]-1, merged_lines))
 
-def corner_extraction(lines: list, laser_points):
-    Vcorners = []
-    dmin = 0.1
-    dpmax = 0.1
-    alfa_min = 0.001
-    alfa_max = 93
-    for i in range(len(lines)-1):
-        j = i+1
-        d = distance(laser_points[lines[i][1]],laser_points[lines[j][0]])
-        v1 = np.array(laser_points[lines[j][1]]) - \
-            np.array(laser_points[lines[j][0]])
-
-        v2 = np.array(laser_points[lines[i][1]]) - \
-            np.array(laser_points[lines[i][0]])
-
-        alfa = angle_between_vectors(v1, v2)
-    
-        if d < dmin:
-            Vcorners.append((lines[i][1],lines[j][0]))
-        while d < dmin and alfa_min < alfa < alfa_max:
-            x, y = intersection_two_lines(lines[i],lines[j],laser_points)
-            dp1 = distance(laser_points[lines[i][1]],(x,y))
-            dp2 = distance(laser_points[lines[j][0]],(x,y))
-            if dp1 < dpmax and dp2 < dpmax:
-                Vcorners[-1] = (x, y)
-            if j+1 < len(lines):
-                j = j + 1
-            else:
-                break
-            d = distance(laser_points[lines[i][1]],laser_points[lines[j][0]])
-            v1 = np.array(laser_points[lines[j][1]]) - \
-                np.array(laser_points[lines[j][0]])
-
-            v2 = np.array(laser_points[lines[i][1]]) - \
-                np.array(laser_points[lines[i][0]])
-
-            alfa = angle_between_vectors(v1, v2)                
-            pass
-        i=i+1
-    return Vcorners
-
 
 def corner_extraction(lines: list, laser_points):
     Vcorners = []
