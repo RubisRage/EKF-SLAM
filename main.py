@@ -60,7 +60,8 @@ def display_helper(X, laser_points, corners, lm, nLm):
     draw_points(frame, laser_points)
 
     # Draw associated landmarks
-    draw_points(frame, cartesian_coords(np.array(map(lambda lm: lm.z, lm))))
+    draw_points(frame, cartesian_coords(
+        np.array(list(map(lambda lm: lm.z, lm)), dtype=np.double)), X[:3])
 
     cv2.imshow("Association test", frame)
 

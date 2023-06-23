@@ -5,7 +5,7 @@ import config
 import numpy as np
 
 
-def draw_lines(frame, lines, laser_points, laser, show_border=False,
+def draw_lines(frame, lines, laser_points, show_border=False,
                show_text=False):
 
     for i, line in enumerate(lines):
@@ -56,8 +56,8 @@ def draw_mesh(frame: np.array):
         cv2.line(frame, (x, 0), (x, config.frame_width), (0, 128, 0), 1)
 
 
-def draw_corner(frame, Vcorner):
+def draw_corner(frame, corners):
     color = (255, 0, 255)
 
-    for corner in Vcorner:
+    for corner in corners:
         cv2.circle(frame, to_display_space(corner), 5, color, -1)

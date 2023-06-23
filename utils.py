@@ -9,15 +9,17 @@ def angle_between_vectors(v1, v2):
     )
 
 
-def range_bearing(cartesian_points, robotPose: tuple[float, float, float]):
+def range_bearing(cartesian_points, robotPose=(.0, .0, .0)):
     rx, ry, rth = robotPose
 
     polar_points = np.ndarray((len(cartesian_points), 2), dtype=np.double)
 
     for i, point in enumerate(cartesian_points):
         x, y = point
+        xt = x - rx
+        yt = y - ry
 
-        polar_points[i][0] = distance((rx, ry), (x, y))
+        polar_points[i][0] = distance((0, 0), (xt, yt))
         polar_points[i][1] = pi_to_pi(np.arctan(y/x) - rth)
 
     return polar_points
@@ -31,7 +33,7 @@ def cartesian_coords(polar_points, robotPose=(0., 0., 0.)):
     for i, p in enumerate(polar_points):
         r, b = p
         cartesian_points[i][0] = r * cos(b + rth) - rx
-        cartesian_points[i][1] = r * -sin(b + rth) - ry
+        cartesian_points[i][1] = r * sin(b + rth) - ry
 
     return cartesian_points
 
@@ -121,9 +123,10 @@ def intersection_two_lines(l1, l2, laser_points):
 
 
 def main():
+    points = [(3, 4), (1, 3), (3, 3), (1, 1)]
 
-    x, y = intersection_two_lines([(0, 4), (-1, 3)], [(0, 0), (-1, 1)])
-    print(x, y)  # (2,2) Da correcto.
+    print(range_bearing(points))
+    print(cartesian_coords(range_bearing(points)))
 
 
 if __name__ == "__main__":

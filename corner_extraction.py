@@ -155,8 +155,7 @@ def main():
 
         display.draw_mesh(frame)
         display.draw_points(frame, laser_points)
-        display.draw_lines(frame, lines, laser_points,
-                           laser, show_border=True)
+        display.draw_lines(frame, lines, laser_points, show_border=True)
         display.draw_corner(frame, corners)
 
         cv2.imshow("Corner extraction test", frame)
