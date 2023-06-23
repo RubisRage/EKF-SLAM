@@ -1,8 +1,8 @@
-from utils import (distance, cartesian_coords, angle_between_vectors, pi_to_pi,
-                   distance_to_line, intersection_two_lines, range_bearing,
-                   process_laser)
+from utils import (distance, angle_between_vectors, pi_to_pi, distance_to_line,
+                   intersection_two_lines, range_bearing, process_laser)
 from math import pi
 import numpy as np
+import config
 
 
 def line_segmentation(laser_points, laser_data):
@@ -10,20 +10,24 @@ def line_segmentation(laser_points, laser_data):
     line_segment_start = 0
     first_phase_lines = []
 
+    base_distance = config.lseg_base_distance
+    distance_scale_factor = config.lseg_distance_scale_factor
+
     for i, p in enumerate(laser_points):
 
         d = None
 
         if i+1 < len(laser_points):
             d = distance(p, laser_points[i+1])
-            dmax = 0.1 + 0.05*(laser_data[i] + laser_data[i+1])
+            dmax = base_distance + \
+                distance_scale_factor*(laser_data[i] + laser_data[i+1])
 
         if d is None or d > dmax:
             first_phase_lines.append((line_segment_start, i))
             line_segment_start = i+1
 
     second_phase_lines = []
-    alfa_max = pi_to_pi(30*pi / 180)
+    alfa_max = config.lseg_alfa_max
 
     for line in first_phase_lines:
         for j in range(line[0], line[1]):
@@ -42,12 +46,13 @@ def line_segmentation(laser_points, laser_data):
     # i+1-th line segment (d = 0).
 
     third_phase_lines = []
+    lbd_scale_factor = config.lseg_lbd_scale_factor
 
     for i, line in enumerate(second_phase_lines):
         x1, y1 = laser_points[line[0]]
         x2, y2 = laser_points[line[1]]
 
-        lbd_max = 0.1 * distance((x1, y1), (x2, y2))
+        lbd_max = lbd_scale_factor * distance((x1, y1), (x2, y2))
 
         m = (y2-y1) / (x2-x1)
         b = y1 - m * x1
@@ -68,8 +73,8 @@ def line_segmentation(laser_points, laser_data):
 
 def line_merging(lines, laser_points):
 
-    dmax = 1.5  # meters
-    alfa_max = pi_to_pi(5*pi/180)  # radians
+    dmax = config.lmerg_max_distance
+    alfa_max = config.lmerg_max_angle
 
     n = 0
     merged_lines = [lines[0]]
@@ -99,10 +104,10 @@ def line_merging(lines, laser_points):
 
 def corner_extraction(lines: list, laser_points):
     Vcorners = []
-    dmin = 1
-    dpmax = 1
-    alfa_min = (90-15) * pi / 180
-    alfa_max = (90+15) * pi / 180
+    dmin = config.cext_dmin
+    max_distance_to_corner = config.cext_max_distance_to_corner
+    alfa_min = config.cext_alfa_min
+    alfa_max = config.cext_alfa_max
 
     for i in range(len(lines)-1):
         j = i+1
@@ -119,7 +124,7 @@ def corner_extraction(lines: list, laser_points):
             x, y = intersection_two_lines(lines[i], lines[j], laser_points)
             dp1 = distance(laser_points[lines[i][1]], (x, y))
             dp2 = distance(laser_points[lines[j][0]], (x, y))
-            if dp1 < dpmax and dp2 < dpmax:
+            if dp1 < max_distance_to_corner and dp2 < max_distance_to_corner:
                 Vcorners.append((x, y))
 
     return Vcorners
@@ -147,16 +152,13 @@ def main():
 
         lines = line_segmentation(laser_points, laser.data)
         lines = line_merging(lines, laser_points)
-        Vcorner = corner_extraction(lines, laser_points)
-
-        print("Esquinas encontradas: ", len(Vcorner))
-        print("Lineas encontradas: ", len(lines))
+        corners = corner_extraction(lines, laser_points)
 
         display.draw_mesh(frame)
         display.draw_points(frame, laser_points)
         display.draw_lines(frame, lines, laser_points,
                            laser, show_border=True)
-        display.draw_corner(frame, Vcorner)
+        display.draw_corner(frame, corners)
 
         cv2.imshow("Corner extraction test", frame)
 
@@ -164,7 +166,6 @@ def main():
 
         if key == ord('q'):
             break
-
 
     cv2.destroyAllWindows()
 
