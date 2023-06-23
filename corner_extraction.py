@@ -1,6 +1,5 @@
-from utils import (distance, angle_between_vectors, pi_to_pi, distance_to_line,
+from utils import (distance, angle_between_vectors, distance_to_line,
                    intersection_two_lines, range_bearing, process_laser)
-from math import pi
 import numpy as np
 import config
 
