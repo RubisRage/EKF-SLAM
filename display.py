@@ -1,5 +1,3 @@
-from slam_types import Laser
-from utils import cartesian_coords
 from math import cos, sin
 
 import cv2
@@ -62,4 +60,4 @@ def draw_corner(frame, Vcorner):
     color = (255, 0, 255)
 
     for corner in Vcorner:
-        cv2.circle(frame, to_display_space(corner), 3, color, -1)
+        cv2.circle(frame, to_display_space(corner), 5, color, -1)

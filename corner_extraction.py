@@ -1,5 +1,6 @@
 from utils import (distance, cartesian_coords, angle_between_vectors, pi_to_pi,
-                   distance_to_line, intersection_two_lines, range_bearing)
+                   distance_to_line, intersection_two_lines, range_bearing,
+                   process_laser)
 from math import pi
 import numpy as np
 
@@ -93,15 +94,15 @@ def line_merging(lines, laser_points):
             merged_lines.append(lines[i])
             n += 1
 
-    return list(filter(lambda line: line[0] != line[1]-1, merged_lines))
+    return list(filter(lambda line: abs(line[0] - line[1]) > 1, merged_lines))
 
 
 def corner_extraction(lines: list, laser_points):
     Vcorners = []
     dmin = 1
     dpmax = 1
-    alfa_min = 0.001
-    alfa_max = 93
+    alfa_min = (90-15) * pi / 180
+    alfa_max = (90+15) * pi / 180
 
     for i in range(len(lines)-1):
         j = i+1
@@ -141,7 +142,7 @@ def main():
     data_loader = loader.loader(config.log)
 
     for _, laser in data_loader:
-        laser_points = cartesian_coords(laser)
+        laser_points = process_laser(laser)
         frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
 
         lines = line_segmentation(laser_points, laser.data)
@@ -152,15 +153,18 @@ def main():
         print("Lineas encontradas: ", len(lines))
 
         display.draw_mesh(frame)
-        display.draw_raw_points(frame, None, laser)
+        display.draw_points(frame, laser_points)
         display.draw_lines(frame, lines, laser_points,
                            laser, show_border=True)
         display.draw_corner(frame, Vcorner)
 
         cv2.imshow("Corner extraction test", frame)
 
-        while cv2.waitKey(0) != ord('q'):
-            pass
+        key = cv2.waitKey(0)
+
+        if key == ord('q'):
+            break
+
 
     cv2.destroyAllWindows()
 
