@@ -144,6 +144,11 @@ def main():
     import config
 
     data_loader = loader.loader(config.log)
+    global_frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
+    
+    #for _, laser in data_loader:
+    #    laser_points = process_laser(laser)
+
 
     for _, laser in data_loader:
         laser_points = process_laser(laser)
@@ -158,8 +163,13 @@ def main():
         display.draw_lines(frame, lines, laser_points,
                            laser, show_border=True)
         display.draw_corner(frame, corners)
+        #display.draw_global_map(global_frame, data_loader)
 
-        cv2.imshow("Corner extraction test", frame)
+        frame = cv2.resize(frame,(700,700))
+        global_frame = cv2.resize(global_frame,(700,700))
+
+        frame_combined = cv2.hconcat([frame,global_frame])
+        cv2.imshow("Display Frames", frame_combined)
 
         key = cv2.waitKey(0)
 

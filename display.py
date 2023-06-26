@@ -61,3 +61,6 @@ def draw_corner(frame, Vcorner):
 
     for corner in Vcorner:
         cv2.circle(frame, to_display_space(corner), 5, color, -1)
+
+#def draw_global_map(global_frame, data_loader):
+    
