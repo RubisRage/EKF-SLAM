@@ -165,11 +165,12 @@ def main():
         display.draw_corner(frame, corners)
         #display.draw_global_map(global_frame, data_loader)
 
-        frame = cv2.resize(frame,(700,700))
-        global_frame = cv2.resize(global_frame,(700,700))
+        #frame = cv2.resize(frame,(700,700))
+        #global_frame = cv2.resize(global_frame,(700,700))
 
-        frame_combined = cv2.hconcat([frame,global_frame])
-        cv2.imshow("Display Frames", frame_combined)
+        #frame_combined = cv2.vconcat([frame,global_frame])
+        cv2.imshow("Display Frames", frame)
+        #cv2.imshow("Display Frames", frame_combined)
 
         key = cv2.waitKey(0)
 
