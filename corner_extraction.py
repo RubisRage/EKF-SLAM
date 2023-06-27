@@ -144,10 +144,6 @@ def main():
     import config
 
     data_loader = loader.loader(config.log)
-    global_frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
-    
-    #for _, laser in data_loader:
-    #    laser_points = process_laser(laser)
 
 
     for _, laser in data_loader:
@@ -163,14 +159,54 @@ def main():
         display.draw_lines(frame, lines, laser_points,
                            laser, show_border=True)
         display.draw_corner(frame, corners)
-        #display.draw_global_map(global_frame, data_loader)
+        # Frame Global
+        global_frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
+        r_frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
+        black_frame = np.zeros((config.frame_height, config.frame_width, 3)) * 255
+        display.draw_mesh(global_frame)
+        display.draw_mesh(r_frame)
+       # display.draw_robot(global_frame,)
+        frame_combined = cv2.hconcat([frame,r_frame])
+        frame_combined2 = cv2.hconcat([global_frame,black_frame])
+        frame_combined = cv2.vconcat([frame_combined,frame_combined2])
 
-        #frame = cv2.resize(frame,(700,700))
-        #global_frame = cv2.resize(global_frame,(700,700))
+        # Definir el tamaño del nuevo frame con el marco negro
+        frame_combined_height, frame_combined_width = frame_combined.shape[:2]
+        scale_factor = 1.1  # Factor de escala para el nuevo frame (ejemplo: 1.5 veces más grande)
+        new_width = int(frame_combined_width * scale_factor)
+        new_height = int(frame_combined_height * scale_factor)
 
-        #frame_combined = cv2.vconcat([frame,global_frame])
-        cv2.imshow("Display Frames", frame)
-        #cv2.imshow("Display Frames", frame_combined)
+        # Crear el nuevo frame con el marco negro
+        new_frame = np.zeros((new_height, new_width, 3), dtype=np.uint8)
+
+        # Calcular la posición para centrar el frame_combined en el nuevo frame
+        x_offset = int((new_width - frame_combined_width) / 2)
+        y_offset = int((new_height - frame_combined_height) / 2)
+
+        # Insertar el frame_combined en el nuevo frame
+        
+        new_frame[y_offset:y_offset+frame_combined_height, x_offset:x_offset+frame_combined_width] = frame_combined
+
+        
+        #cv2.namedWindow("Display Frames", cv2.WINDOW_NORMAL)
+        #cv2.setWindowProperty("Display Frames", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+#
+        ## Calcular el tamaño de la ventana para que ocupe toda la pantalla
+        #window_width = new_width
+        #window_height = new_height
+#
+        ## Ajustar el tamaño de la ventana
+        #cv2.resizeWindow("Display Frames", window_width, window_height)
+#
+        ## Calcular las coordenadas para centrar la ventana
+        #window_x = int((new_width - window_width) / 2)
+        #window_y = int((new_height - window_height) / 2)
+#
+        ## Mover la ventana a las coordenadas centradas
+        #cv2.moveWindow("Display Frames", window_x, window_y) 
+        cv2.namedWindow("Display Frames", cv2.WINDOW_NORMAL)
+        cv2.setWindowProperty("Display Frames", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        cv2.imshow("Display Frames", new_frame)
 
         key = cv2.waitKey(0)
 

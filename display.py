@@ -39,21 +39,23 @@ def to_display_space(p, pose=(.0, .0, .0)):
     tp = (R @ np.array(p).T + np.array([x, y]).T +
           np.array([1, 5]).T) * config.meters_to_px_ratio
 
-    return [int(tp[0]), int(tp[1])]
+    return [int(tp[0]), int(tp[1]-120)]
 
 
 def draw_points(frame: np.array, points, color=(0, 0, 0)):
+
+    cv2.circle(frame, to_display_space((0,0)), 4, (165,255,0), cv2.FILLED)
 
     for p in points:
         cv2.circle(frame, to_display_space(p), 2, color, cv2.FILLED)
 
 
 def draw_mesh(frame: np.array):
-    for y in range(0, config.frame_height, 100):
-        cv2.line(frame, (0, y), (config.frame_height, y), (0, 128, 0), 1)
+    for y in range(0, config.frame_height, config.mesh_y):
+        cv2.line(frame, (0, y), (config.frame_width, y), (0, 128, 0), 1)
 
-    for x in range(0, config.frame_width, 100):
-        cv2.line(frame, (x, 0), (x, config.frame_width), (0, 128, 0), 1)
+    for x in range(0, config.frame_width, config.mesh_x):
+        cv2.line(frame, (x, 0), (x, config.frame_height), (0, 128, 0), 1)
 
 
 def draw_corner(frame, Vcorner):
