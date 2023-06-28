@@ -7,13 +7,13 @@ dt = 0.1  # seconds
 
 # FRAME CONFIG ======================
 
-frame_width = 600
-frame_height = 350
+frame_width = 500
+frame_height = 750
 meters_to_px_ratio = frame_width / 10
 
 # ===================================
-mesh_x = int(frame_width / 10)
-mesh_y = int(frame_height / 10)
+#mesh_x = int(frame_width / 10)
+#mesh_y = int(frame_height / 10)
 # ===================================
 
 # CORNER EXTRACTION CONFIG ==========

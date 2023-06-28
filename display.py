@@ -39,7 +39,7 @@ def to_display_space(p, pose=(.0, .0, .0)):
     tp = (R @ np.array(p).T + np.array([x, y]).T +
           np.array([1, 5]).T) * config.meters_to_px_ratio
 
-    return [int(tp[0]), int(tp[1]-120)]
+    return [int(tp[0]), int(tp[1])+100]
 
 
 def draw_points(frame: np.array, points, color=(0, 0, 0)):
@@ -51,10 +51,11 @@ def draw_points(frame: np.array, points, color=(0, 0, 0)):
 
 
 def draw_mesh(frame: np.array):
-    for y in range(0, config.frame_height, config.mesh_y):
+    frame_height, frame_width = frame.shape[:2]
+    for y in range(0, config.frame_height, int(frame_height/10)):
         cv2.line(frame, (0, y), (config.frame_width, y), (0, 128, 0), 1)
 
-    for x in range(0, config.frame_width, config.mesh_x):
+    for x in range(0, config.frame_width, int(frame_width/10)):
         cv2.line(frame, (x, 0), (x, config.frame_height), (0, 128, 0), 1)
 
 
@@ -64,5 +65,9 @@ def draw_corner(frame, Vcorner):
     for corner in Vcorner:
         cv2.circle(frame, to_display_space(corner), 5, color, -1)
 
-#def draw_global_map(global_frame, data_loader):
-    
+def draw_frame_border(frame, color=(0, 0, 0), thickness=4):
+    height, width = frame.shape[:2]
+    cv2.line(frame, (0, 0), (width, 0), color, thickness)  # Línea superior
+    cv2.line(frame, (width, 0), (width, height), color, thickness)  # Línea derecha
+    cv2.line(frame, (0, height), (width, height), color, thickness)  # Línea inferior
+    cv2.line(frame, (0, 0), (0, height), color, thickness)  # Línea izquierda 
