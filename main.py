@@ -31,19 +31,12 @@ def main():
         xtrue += [*controls]
 
         laser_points = process_laser(laser)
-
-        pose = X[:3] * [1, -1, 1]
-
-        print("System: ", pose)
-        print("Laser: ", laser.data[:5])
-        print("Processed laser: ", global_coords(laser_points[:5], pose))
-
         z = find_corners(X, laser_points, laser.data)
 
         lm, nLm = associate(X, P, z, R, INNER_GATE, OUTER_GATE)
 
-        # print(f"Associated: {len(lm)}, New: {len(nLm)}")
-        display_helper(X, laser_points, lm, nLm)
+        print(f"Associated: {len(lm)}, New: {len(nLm)}")
+        display_helper(xtrue, X, laser_points, lm, nLm)
 
         # Draw map
         while (key := cv2.waitKey()) != ord(' '):
@@ -52,55 +45,56 @@ def main():
                 exit()
 
         # STEP 2: Update
-        X, P = update(X, P, lm, R)
+        # X, P = update(X, P, lm, R)
 
         # STEP 3: Augment
         X, P = augment(X, P, nLm, R)
 
 
-def display_helper(X, laser_points, associatedLm, newLm):
+def display_helper(xtrue, X, laser_points, associatedLm, newLm):
     from display import draw_points, draw_mesh, draw_robot
 
     frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
 
     draw_mesh(frame)
 
-    pose = X[:3] * [1, -1, 1]
-
     # Draw robot
     # draw_points(frame, [pose[:2]], color=(0, 0, 255))
-    draw_robot(frame, pose, color=(0, 0, 255))
+    draw_robot(frame, X[:3], color=(0, 0, 255))
+    draw_robot(frame, xtrue, color=(255, 0, 0))
 
     # Draw observed points
-    draw_points(frame, global_coords(laser_points, pose))
+    draw_points(frame, global_coords(laser_points, X[:3]))
 
     # Draw associated landmarks
     z = global_coords(cartesian_coords(
         np.array(list(map(lambda lm: lm.z, associatedLm)), dtype=np.double)
-        ), pose)
+    ), X[:3])
 
     ids = list(map(lambda lm: lm.id, associatedLm))
 
-    draw_points(frame, z, color=(255, 0, 255), radius=3, labels=ids)
+    draw_points(frame, z, color=(255, 0, 255), radius=3,
+                labels=ids, label_color=(255, 0, 255))
 
-    systemAssociatedLm = []
+    predicted_lm = []
 
-    for id in ids:
+    for fid in range(3, X.shape[0] - 1, 2):
         from models import observe_model
-        systemAssociatedLm.append(global_coords(cartesian_coords(
-            [observe_model(X, id)[0]]), pose)[0])
+        predicted_lm.append(global_coords(cartesian_coords(
+            [observe_model(X, fid)[0]]), X[:3])[0])
 
     # Draw system associated landmarks
     # Predicted
-    draw_points(frame, systemAssociatedLm, color=(
-        0, 255, 0), radius=2)
+    draw_points(frame, predicted_lm, color=(0, 255, 0), radius=2,
+                labels=range(3, X.shape[0] - 1, 2), label_color=(0, 0, 255),
+                label_offset=[0, 10])
     # Last seen
     draw_points(frame, X[3:].reshape(
-        ((X.shape[0] - 3) // 2, 2)) * [1, -1], color=(255, 0, 0), radius=1)
+        ((X.shape[0] - 3) // 2, 2)), color=(255, 0, 0), radius=1)
 
     # Draw new landmarks
-    draw_points(frame, global_coords(cartesian_coords(newLm), pose), color=(0, 255, 255), radius=3)
-
+    draw_points(frame, global_coords(cartesian_coords(
+        newLm), X[:3]), color=(0, 255, 255), radius=3)
 
     cv2.imshow("Association test", frame)
 

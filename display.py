@@ -28,24 +28,25 @@ def draw_lines(frame, lines, laser_points, show_border=False,
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
 
 
-def to_display_space(p, pose=(.0, .0, .0)):
-    x, y, th = pose
-
-    R = np.array([
-        [cos(th), -sin(th)],
-        [sin(th), cos(th)]
+def to_display_space(p):
+    A = np.array([
+        [1, 0],
+        [0, -1]
     ])
 
-    tp = (R @ np.array(p).T + np.array([x, y]).T +
-          np.array([1, 5]).T) * config.meters_to_px_ratio
+    tp = (A @ np.array(p).T + np.array([1, 5]).T) * config.meters_to_px_ratio
 
     return np.array([int(tp[0]), int(tp[1])])
 
 
 def draw_points(frame: np.array, points, **kwargs):
     color = kwargs["color"] if "color" in kwargs else (0, 0, 0)
+    label_color = kwargs["label_color"] if "label_color" in kwargs else (
+        0, 0, 0)
     radius = kwargs["radius"] if "radius" in kwargs else 2
     labels = kwargs["labels"] if "labels" in kwargs else None
+    label_offset = kwargs["label_offset"] if "label_offset" in kwargs else [
+        0, -10]
 
     for p in points:
         cv2.circle(frame, to_display_space(p), radius, color, cv2.FILLED)
@@ -53,8 +54,8 @@ def draw_points(frame: np.array, points, **kwargs):
     if labels is not None:
         for p, label in zip(points, labels):
             cv2.putText(frame, f'{label}', to_display_space(p)
-                        + [0, -10], cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 255),
-                        1)
+                        + label_offset, cv2.FONT_HERSHEY_SIMPLEX, 0.3,
+                        label_color, 1)
 
 
 def draw_robot(frame, pose, **kwargs):
@@ -64,8 +65,8 @@ def draw_robot(frame, pose, **kwargs):
     x, y, th = pose
 
     R = np.array([
-        [cos(th), sin(th)],
-        [-sin(th), cos(th)]
+        [cos(th), -sin(th)],
+        [sin(th), cos(th)]
     ])
 
     location = np.array([x, y]).T

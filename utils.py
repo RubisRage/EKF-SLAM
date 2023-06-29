@@ -42,8 +42,8 @@ def global_coords(points, robotPose):
     rx, ry, rth = robotPose
 
     R = np.array([
-        [cos(rth), sin(rth)],
-        [-sin(rth), cos(rth)]
+        [cos(rth), -sin(rth)],
+        [sin(rth), cos(rth)]
     ])
 
     global_points = np.empty((len(points), 2))
@@ -71,7 +71,7 @@ def process_laser(laser: Laser, robotPose=(0., 0., 0.)):
 
     for r in laserdata:
         if r != inf:
-            points.append((r * cos(theta + th) - x, r * -sin(theta + th) - y))
+            points.append((r * cos(theta + th) - x, r * sin(theta + th) - y))
 
         theta += degreeResolution
 

@@ -1,5 +1,5 @@
 from utils import pi_to_pi
-from math import atan, sqrt
+from math import atan2, sqrt
 import numpy as np
 
 
@@ -28,7 +28,7 @@ def observe_model(
 
     z = np.array([
         distance,
-        pi_to_pi(atan(ydiff/xdiff) + X[2])
+        pi_to_pi(atan2(ydiff, xdiff) - X[2])
     ])
 
     H[:, 0:3] = [[-xd, -yd,   0],
