@@ -139,14 +139,13 @@ def find_corners(X, laser_points, laser_data):
 
 def main():
     import loader
-    import display
     import cv2
     import config
 
     data_loader = loader.loader(config.log)
 
 
-    for _, laser in data_loader:   
+    for _, laser in data_loader:
         laser_points = process_laser(laser)
         robot_pov = np.ones((config.frame_height, config.frame_width, 3)) * 255
 
@@ -154,47 +153,6 @@ def main():
         lines = line_merging(lines, laser_points)
         corners = corner_extraction(lines, laser_points)
 
-        display.draw_mesh(robot_pov)
-        display.draw_points(robot_pov, laser_points)
-        display.draw_lines(robot_pov, lines, laser_points, laser, show_border=True)
-        display.draw_corner(robot_pov, corners)
-
-        # Frame Global
-        global_frame = np.ones((int(config.frame_height/2), config.frame_width, 3)) * 255
-        map = np.ones((int(config.frame_height/2), config.frame_width, 3)) * 255
-
-        #Malla  
-        display.draw_mesh(global_frame)
-        display.draw_mesh(map)
-
-        #Border de los frames
-        display.draw_frame_border(robot_pov)
-        display.draw_frame_border(global_frame)
-        display.draw_frame_border(map)
-
-        frame_combined = cv2.vconcat([global_frame, map])
-        frame_combined = cv2.hconcat([robot_pov, frame_combined])
-
-        # Definir el tamaño del nuevo frame con el marco negro
-        frame_height, frame_width = frame_combined.shape[:2]
-        scale_factor = 1.005  # Factor de escala para el nuevo frame (ejemplo: 1.1 veces más grande)
-        new_width = int(frame_width * scale_factor)
-        new_height = int(frame_height * scale_factor)
-
-        # Crear el nuevo frame con el marco negro
-        new_frame = np.zeros((new_height, new_width, 3), dtype=np.uint8)
-
-        # Calcular la posición para centrar el frame en el nuevo frame
-        x_offset = int((new_width - frame_width) / 2)
-        y_offset = int((new_height - frame_height) / 2)
-
-        # Insertar el frame en el nuevo frame
-        new_frame[y_offset:y_offset+frame_height, x_offset:x_offset+frame_width] = frame_combined
-
-
-        cv2.namedWindow("Display Frames", cv2.WINDOW_NORMAL)
-        cv2.setWindowProperty("Display Frames", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-        cv2.imshow("Display Frames", new_frame)
 
         key = cv2.waitKey(0)
 

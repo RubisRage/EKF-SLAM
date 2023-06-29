@@ -65,9 +65,36 @@ def draw_corner(frame, Vcorner):
     for corner in Vcorner:
         cv2.circle(frame, to_display_space(corner), 5, color, -1)
 
-def draw_frame_border(frame, color=(0, 0, 0), thickness=4):
-    height, width = frame.shape[:2]
-    cv2.line(frame, (0, 0), (width, 0), color, thickness)  # Línea superior
-    cv2.line(frame, (width, 0), (width, height), color, thickness)  # Línea derecha
-    cv2.line(frame, (0, height), (width, height), color, thickness)  # Línea inferior
-    cv2.line(frame, (0, 0), (0, height), color, thickness)  # Línea izquierda 
+
+def build_frame(robot_pov, global_frame, map):
+    scale_factor = .005
+    border_width = int(robot_pov.shape[0] * scale_factor)
+
+    frame = np.zeros((robot_pov.shape[0] + border_width,
+                      robot_pov.shape[1] * 2 + border_width,
+                      3))
+
+    rp_height, rp_width, _ = robot_pov.shape
+
+    frame[: rp_height, : rp_width] = robot_pov
+    frame[: rp_height // 2, rp_width + border_width:] = global_frame
+    frame[rp_height // 2 + border_width:, rp_width + border_width:] = map
+
+    return frame
+
+
+def main():
+    robot_pov = np.ones((500, 500, 3)) * 255
+    global_frame = np.ones((250, 500, 3)) * 255
+    map = np.ones((250, 500, 3)) * 255
+
+    frame = build_frame(robot_pov, global_frame, map)
+
+    cv2.imshow("Build frame test", frame)
+
+    while cv2.waitKey(0) != ord('q'):
+        pass
+
+
+if __name__ == "__main__":
+    main()
