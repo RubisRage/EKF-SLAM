@@ -38,6 +38,22 @@ def cartesian_coords(polar_points, robotPose=(0., 0., 0.)):
     return cartesian_points
 
 
+def global_coords(points, robotPose):
+    rx, ry, rth = robotPose
+
+    R = np.array([
+        [cos(rth), sin(rth)],
+        [-sin(rth), cos(rth)]
+    ])
+
+    global_points = np.empty((len(points), 2))
+
+    for i, point in enumerate(points):
+        global_points[i] = R @ np.array(point).T + np.array([rx, ry]).T
+
+    return global_points
+
+
 def process_laser(laser: Laser, robotPose=(0., 0., 0.)):
     """
     Converts a set of laser measurements in 2d points in

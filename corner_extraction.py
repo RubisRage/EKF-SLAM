@@ -134,7 +134,7 @@ def find_corners(X, laser_points, laser_data):
     merged_lines = line_merging(segmented_lines, laser_points)
     corners = corner_extraction(merged_lines, laser_points)
 
-    return range_bearing(corners, X[:3])
+    return range_bearing(corners)
 
 
 def main():

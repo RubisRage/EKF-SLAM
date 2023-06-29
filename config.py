@@ -61,7 +61,7 @@ R = np.array([
 ])
 
 # Association gates
-INNER_GATE = 4.0
+INNER_GATE = 2.0
 OUTER_GATE = 25.0
 
 # ===================================

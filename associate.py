@@ -1,7 +1,7 @@
 from slam_types import AssociatedLandmark
 from math import inf, log
 from models import observe_model
-from utils import pi_to_pi
+from utils import pi_to_pi, cartesian_coords, distance
 from numpy.linalg import det
 
 import numpy as np
@@ -31,7 +31,7 @@ def associate(
         outer = inf
 
         # For each present feature
-        for fid in range(nRb, nLm, 2):
+        for fid in range(nRb, nLm*2 + 2, 2):
             nis, nd = compute_association(x, P, lm, fid, R)
 
             if nis < innerGate and nd < bestN:
@@ -64,14 +64,18 @@ def compute_association(
     v[1] = pi_to_pi(v[1])
 
     # Innovation covariance: H * P * H' + R
-    S = np.matmul(np.matmul(H, P), H.T) + R
+    S = H @ P @ H.T + R
 
-    # Normalised innovation squared: v' * S * v
-    nis = np.matmul(np.matmul(v.T, S), v)
+    # Normalised innovation squared: v' * S^-1 * v
+    # TODO: Check this -> nis = v.T @ np.linalg.inv(S) @ v
+    nis = v.T @ S @ v
 
     # Normalised distance: nis + ln(|S|)
-    nd = nis + log(det(S))
+    # nd = nis + log(det(S))
+    nd = nis * 2.
+
+    print(z, end=f' - {fid}: eucl(')
+    print(distance(*cartesian_coords([z, zp], X[:3])), end='')
+    print(f') - norm({nd})')
 
     return nis, nd
-
-

@@ -7,8 +7,8 @@ def observe_model(
     X: np.array,  # System state
     fid: int      # Feature id
 ) -> tuple[
-    list,     # Predicted feature position [range, bearing]
-    np.array  # Jacobian of the observation model
+    np.array,  # Predicted feature position [range, bearing]
+    np.array   # Jacobian of the observation model
 ]:
     """
     Computes the expected position of a known landmark and that landmarks
@@ -28,7 +28,7 @@ def observe_model(
 
     z = np.array([
         distance,
-        pi_to_pi(atan(ydiff/xdiff) - X[3])
+        pi_to_pi(atan(ydiff/xdiff) + X[2])
     ])
 
     H[:, 0:3] = [[-xd, -yd,   0],

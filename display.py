@@ -39,13 +39,22 @@ def to_display_space(p, pose=(.0, .0, .0)):
     tp = (R @ np.array(p).T + np.array([x, y]).T +
           np.array([1, 5]).T) * config.meters_to_px_ratio
 
-    return [int(tp[0]), int(tp[1])]
+    return np.array([int(tp[0]), int(tp[1])])
 
 
-def draw_points(frame: np.array, points, color=(0, 0, 0)):
+def draw_points(frame: np.array, points, **kwargs):
+    color = kwargs["color"] if "color" in kwargs else (0, 0, 0)
+    radius = kwargs["radius"] if "radius" in kwargs else 2
+    labels = kwargs["labels"] if "labels" in kwargs else None
 
     for p in points:
-        cv2.circle(frame, to_display_space(p), 2, color, cv2.FILLED)
+        cv2.circle(frame, to_display_space(p), radius, color, cv2.FILLED)
+
+    if labels is not None:
+        for p, label in zip(points, labels):
+            cv2.putText(frame, f'{label}', to_display_space(p)
+                        + [0, -10], cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 255),
+                        1)
 
 
 def draw_mesh(frame: np.array):
