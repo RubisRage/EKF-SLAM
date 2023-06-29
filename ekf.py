@@ -72,8 +72,7 @@ def update(
         v[1] = pi_to_pi(v[1])
 
         # Compute Kalman gain: P * H' * (H * P * H.T + V * R * V.T)^-1
-        VRV = v @ R @ v.T
-        S = H @ P @ H.T + VRV
+        S = H @ P @ H.T + R
 
         if 0 <= np.linalg.det(S) <= 0.25:
             # print(np.linalg.det(S))

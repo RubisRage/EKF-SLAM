@@ -57,6 +57,29 @@ def draw_points(frame: np.array, points, **kwargs):
                         1)
 
 
+def draw_robot(frame, pose, **kwargs):
+    color = kwargs["color"] if "color" in kwargs else (0, 0, 0)
+    radius = kwargs["radius"] if "radius" in kwargs else 2
+
+    x, y, th = pose
+
+    R = np.array([
+        [cos(th), sin(th)],
+        [-sin(th), cos(th)]
+    ])
+
+    location = np.array([x, y]).T
+
+    p1 = R @ np.array([-0.05, -0.09]).T + location
+    p2 = R @ np.array([-0.05, 0.09]).T + location
+    p3 = R @ np.array([0.3, 0]).T + location
+
+    cv2.line(frame, to_display_space(p1), to_display_space(p2), color, 1)
+    cv2.line(frame, to_display_space(p1), to_display_space(p3), color, 1)
+    cv2.line(frame, to_display_space(p2), to_display_space(p3), color, 1)
+    cv2.circle(frame, to_display_space(location.T), radius, color, cv2.FILLED)
+
+
 def draw_mesh(frame: np.array):
     for y in range(0, config.frame_height, 100):
         cv2.line(frame, (0, y), (config.frame_height, y), (0, 128, 0), 1)

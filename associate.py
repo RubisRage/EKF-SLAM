@@ -68,11 +68,12 @@ def compute_association(
 
     # Normalised innovation squared: v' * S^-1 * v
     # TODO: Check this -> nis = v.T @ np.linalg.inv(S) @ v
-    nis = v.T @ S @ v
+    nis = v.T @ np.linalg.inv(S) @ v
+    # nis = v.T @ S @ v
 
     # Normalised distance: nis + ln(|S|)
-    # nd = nis + log(det(S))
-    nd = nis * 2.
+    nd = nis + log(det(S))
+    # nd = nis * 2.
 
     print(z, end=f' - {fid}: eucl(')
     print(distance(*cartesian_coords([z, zp], X[:3])), end='')
