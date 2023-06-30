@@ -71,12 +71,16 @@ def compute_association(
     nis = v.T @ np.linalg.inv(S) @ v
     # nis = v.T @ S @ v
 
+    print(det(S))
+
     # Normalised distance: nis + ln(|S|)
     nd = nis + log(det(S))
     # nd = nis * 2.
 
+    """
     print(z, end=f' - {fid}: eucl(')
     print(distance(*cartesian_coords([z, zp], X[:3])), end='')
     print(f') - norm({nd})')
+    """
 
     return nis, nd

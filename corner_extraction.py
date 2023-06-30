@@ -98,7 +98,8 @@ def line_merging(lines, laser_points):
             merged_lines.append(lines[i])
             n += 1
 
-    return list(filter(lambda line: abs(line[0] - line[1]) > 1, merged_lines))
+    return list(filter(lambda line: abs(line[0] - line[1]) >= 3,
+                       merged_lines))
 
 
 def corner_extraction(lines: list, laser_points):
@@ -142,10 +143,14 @@ def main():
     import cv2
     import config
     import display
+    from utils import global_coords
 
     data_loader = loader.loader(config.log)
+    xtrue = np.zeros((3,))
 
-    for _, laser in data_loader:
+    for controls, laser in data_loader:
+        xtrue += [*controls]
+
         laser_points = process_laser(laser)
         frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
 
@@ -153,10 +158,12 @@ def main():
         lines = line_merging(lines, laser_points)
         corners = corner_extraction(lines, laser_points)
 
+        laser_points = global_coords(laser_points, xtrue)
+
         display.draw_mesh(frame)
         display.draw_points(frame, laser_points)
-        display.draw_lines(frame, lines, laser_points, show_border=True)
-        display.draw_corner(frame, corners)
+        display.draw_lines(frame, lines, laser_points)
+        display.draw_corner(frame, global_coords(corners, xtrue))
 
         cv2.imshow("Corner extraction test", frame)
 

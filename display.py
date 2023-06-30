@@ -1,4 +1,5 @@
 from math import cos, sin
+from itertools import zip_longest
 
 import cv2
 import config
@@ -28,37 +29,39 @@ def draw_lines(frame, lines, laser_points, show_border=False,
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
 
 
-def to_display_space(p):
+def to_display_space(p, frame_config):
     A = np.array([
         [1, 0],
         [0, -1]
     ])
 
-    tp = (A @ np.array(p).T + np.array([1, 5]).T) * config.meters_to_px_ratio
+    org = frame_config["origin"]
+
+    tp = A @ np.array(p).T * frame_config["meters_to_px_ratio"] + org.T
 
     return np.array([int(tp[0]), int(tp[1])])
 
 
-def draw_points(frame: np.array, points, **kwargs):
+def draw_points(frame: np.array, points, frame_config, **kwargs):
     color = kwargs["color"] if "color" in kwargs else (0, 0, 0)
     label_color = kwargs["label_color"] if "label_color" in kwargs else (
         0, 0, 0)
     radius = kwargs["radius"] if "radius" in kwargs else 2
-    labels = kwargs["labels"] if "labels" in kwargs else None
+    labels = kwargs["labels"] if "labels" in kwargs else []
     label_offset = kwargs["label_offset"] if "label_offset" in kwargs else [
         0, -10]
 
-    for p in points:
-        cv2.circle(frame, to_display_space(p), radius, color, cv2.FILLED)
+    for p, label in zip_longest(points, labels):
+        tp = to_display_space(p, frame_config)
 
-    if labels is not None:
-        for p, label in zip(points, labels):
-            cv2.putText(frame, f'{label}', to_display_space(p)
-                        + label_offset, cv2.FONT_HERSHEY_SIMPLEX, 0.3,
-                        label_color, 1)
+        cv2.circle(frame, tp, radius, color, cv2.FILLED)
+
+        if len(labels) != 0:
+            cv2.putText(frame, f'{label}', tp + label_offset,
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.3, label_color, 1)
 
 
-def draw_robot(frame, pose, **kwargs):
+def draw_robot(frame, pose, frame_config, **kwargs):
     color = kwargs["color"] if "color" in kwargs else (0, 0, 0)
     radius = kwargs["radius"] if "radius" in kwargs else 2
 
@@ -75,19 +78,26 @@ def draw_robot(frame, pose, **kwargs):
     p2 = R @ np.array([-0.05, 0.09]).T + location
     p3 = R @ np.array([0.3, 0]).T + location
 
-    cv2.line(frame, to_display_space(p1), to_display_space(p2), color, 1)
-    cv2.line(frame, to_display_space(p1), to_display_space(p3), color, 1)
-    cv2.line(frame, to_display_space(p2), to_display_space(p3), color, 1)
-    cv2.circle(frame, to_display_space(location.T), radius, color, cv2.FILLED)
+    cv2.line(frame, to_display_space(p1, frame_config),
+             to_display_space(p2, frame_config), color, 1)
+    cv2.line(frame, to_display_space(p1, frame_config),
+             to_display_space(p3, frame_config), color, 1)
+    cv2.line(frame, to_display_space(p2, frame_config),
+             to_display_space(p3, frame_config), color, 1)
+    cv2.circle(frame, to_display_space(location.T, frame_config), radius,
+               color, cv2.FILLED)
 
 
-def draw_mesh(frame: np.array):
-    frame_height, frame_width = frame.shape[:2]
-    for y in range(0, config.frame_height, int(frame_height/10)):
-        cv2.line(frame, (0, y), (config.frame_width, y), (0, 128, 0), 1)
+def draw_mesh(frame: np.array, frame_config):
+    frame_height = frame_config["height"]
+    frame_width = frame_config["width"]
+    meters_to_px_ratio = frame_config["meters_to_px_ratio"]
 
-    for x in range(0, config.frame_width, int(frame_width/10)):
-        cv2.line(frame, (x, 0), (x, config.frame_height), (0, 128, 0), 1)
+    for y in range(0, frame_height, int(meters_to_px_ratio)):
+        cv2.line(frame, (0, y), (frame_width, y), (0, 128, 0), 1)
+
+    for x in range(0, frame_width, int(meters_to_px_ratio)):
+        cv2.line(frame, (x, 0), (x, frame_height), (0, 128, 0), 1)
 
 
 def draw_corner(frame, corners):
@@ -110,6 +120,58 @@ def build_frame(robot_pov, global_frame, map):
     frame[: rp_height, : rp_width] = robot_pov
     frame[: rp_height // 2, rp_width + border_width:] = global_frame
     frame[rp_height // 2 + border_width:, rp_width + border_width:] = map
+
+    return frame
+
+
+def build_global_frame(xtrue, X, laser_points, associatedLm, newLm):
+    from utils import global_coords, cartesian_coords
+    from models import observe_model
+
+    frame_height = config.global_frame_config["height"]
+    frame_width = config.global_frame_config["width"]
+
+    frame = np.ones((frame_height, frame_width, 3)) * 255
+
+    draw_mesh(frame, config.global_frame_config)
+
+    # Draw robot
+    draw_robot(frame, X[:3], config.global_frame_config, color=(0, 0, 255))
+    draw_robot(frame, xtrue, config.global_frame_config, color=(255, 0, 0))
+
+    # Draw observed points
+    draw_points(frame, global_coords(
+        laser_points, X[:3]), config.global_frame_config)
+
+    # Draw associated landmarks
+    z = global_coords(cartesian_coords(
+        np.array(list(map(lambda lm: lm.z, associatedLm)), dtype=np.double)
+    ), X[:3])
+
+    ids = list(map(lambda lm: lm.id, associatedLm))
+
+    draw_points(frame, z, config.global_frame_config, color=(255, 0, 255),
+                radius=3, labels=ids, label_color=(255, 0, 255))
+
+    predicted_lm = []
+
+    for fid in range(3, X.shape[0] - 1, 2):
+        predicted_lm.append(global_coords(cartesian_coords(
+            [observe_model(X, fid)[0]]), X[:3])[0])
+
+    # Draw system associated landmarks
+    # Predicted
+    draw_points(frame, predicted_lm, config.global_frame_config,
+                color=(0, 255, 0), radius=2,
+                labels=range(3, X.shape[0] - 1, 2), label_color=(0, 0, 255),
+                label_offset=[0, 10])
+    # Last seen
+    draw_points(frame, X[3:].reshape(((X.shape[0] - 3) // 2, 2)),
+                config.global_frame_config, color=(255, 0, 0), radius=1)
+
+    # Draw new landmarks
+    draw_points(frame, global_coords(cartesian_coords(newLm), X[:3]),
+                config.global_frame_config, color=(0, 255, 255), radius=3)
 
     return frame
 
