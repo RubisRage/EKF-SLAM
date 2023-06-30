@@ -139,9 +139,9 @@ def find_corners(X, laser_points, laser_data):
 
 def main():
     import loader
-    import display
     import cv2
     import config
+    import display
 
     data_loader = loader.loader(config.log)
 

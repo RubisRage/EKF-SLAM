@@ -82,11 +82,12 @@ def draw_robot(frame, pose, **kwargs):
 
 
 def draw_mesh(frame: np.array):
-    for y in range(0, config.frame_height, 100):
-        cv2.line(frame, (0, y), (config.frame_height, y), (0, 128, 0), 1)
+    frame_height, frame_width = frame.shape[:2]
+    for y in range(0, config.frame_height, int(frame_height/10)):
+        cv2.line(frame, (0, y), (config.frame_width, y), (0, 128, 0), 1)
 
-    for x in range(0, config.frame_width, 100):
-        cv2.line(frame, (x, 0), (x, config.frame_width), (0, 128, 0), 1)
+    for x in range(0, config.frame_width, int(frame_width/10)):
+        cv2.line(frame, (x, 0), (x, config.frame_height), (0, 128, 0), 1)
 
 
 def draw_corner(frame, corners):
@@ -94,3 +95,37 @@ def draw_corner(frame, corners):
 
     for corner in corners:
         cv2.circle(frame, to_display_space(corner), 5, color, -1)
+
+
+def build_frame(robot_pov, global_frame, map):
+    scale_factor = .005
+    border_width = int(robot_pov.shape[0] * scale_factor)
+
+    frame = np.zeros((robot_pov.shape[0] + border_width,
+                      robot_pov.shape[1] * 2 + border_width,
+                      3))
+
+    rp_height, rp_width, _ = robot_pov.shape
+
+    frame[: rp_height, : rp_width] = robot_pov
+    frame[: rp_height // 2, rp_width + border_width:] = global_frame
+    frame[rp_height // 2 + border_width:, rp_width + border_width:] = map
+
+    return frame
+
+
+def main():
+    robot_pov = np.ones((500, 500, 3)) * 255
+    global_frame = np.ones((250, 500, 3)) * 255
+    map = np.ones((250, 500, 3)) * 255
+
+    frame = build_frame(robot_pov, global_frame, map)
+
+    cv2.imshow("Build frame test", frame)
+
+    while cv2.waitKey(0) != ord('q'):
+        pass
+
+
+if __name__ == "__main__":
+    main()
