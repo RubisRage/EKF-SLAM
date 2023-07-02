@@ -4,7 +4,7 @@ import numpy as np
 import config
 
 
-def line_segmentation(laser_points, laser_data):
+def line_segmentation(laser_points):
 
     line_segment_start = 0
     first_phase_lines = []
@@ -12,18 +12,18 @@ def line_segmentation(laser_points, laser_data):
     base_distance = config.lseg_base_distance
     distance_scale_factor = config.lseg_distance_scale_factor
 
-    for i, p in enumerate(laser_points):
+    for i in range(len(laser_points)-1):
+        p1, p2 = range_bearing([laser_points[i], laser_points[i+1]])
 
-        d = None
+        d = distance(laser_points[i], laser_points[i+1])
+        dmax = base_distance + distance_scale_factor*(p1[0] + p2[0])
 
-        if i+1 < len(laser_points):
-            d = distance(p, laser_points[i+1])
-            dmax = base_distance + \
-                distance_scale_factor*(laser_data[i] + laser_data[i+1])
-
-        if d is None or d > dmax:
+        if d > dmax:
             first_phase_lines.append((line_segment_start, i))
             line_segment_start = i+1
+
+    if line_segment_start != len(laser_points) - 1:    
+        first_phase_lines.append((line_segment_start, len(laser_points)-1))
 
     second_phase_lines = []
     alfa_max = config.lseg_alfa_max
@@ -98,8 +98,7 @@ def line_merging(lines, laser_points):
             merged_lines.append(lines[i])
             n += 1
 
-    return list(filter(lambda line: abs(line[0] - line[1]) >= 3,
-                       merged_lines))
+    return merged_lines
 
 
 def corner_extraction(lines: list, laser_points):
@@ -130,8 +129,8 @@ def corner_extraction(lines: list, laser_points):
     return Vcorners
 
 
-def find_corners(X, laser_points, laser_data):
-    segmented_lines = line_segmentation(laser_points, laser_data)
+def find_corners(X, laser_points):
+    segmented_lines = line_segmentation(laser_points)
     merged_lines = line_merging(segmented_lines, laser_points)
     corners = corner_extraction(merged_lines, laser_points)
 
@@ -148,26 +147,34 @@ def main():
     data_loader = loader.loader(config.log)
     xtrue = np.zeros((3,))
 
+    # TODO: Check duplicate corner extraction
+
     for controls, laser in data_loader:
-        xtrue += [*controls]
+        xtrue += controls
+
+        height = config.global_frame_config["height"]
+        width = config.global_frame_config["height"]
+
+        frame = np.ones((height, width, 3)) * 255
 
         laser_points = process_laser(laser)
-        frame = np.ones((config.frame_height, config.frame_width, 3)) * 255
 
-        lines = line_segmentation(laser_points, laser.data)
-        lines = line_merging(lines, laser_points)
-        corners = corner_extraction(lines, laser_points)
+        first_lines = line_segmentation(laser_points)
+        second_lines = line_merging(first_lines, laser_points)
+        corners = corner_extraction(second_lines, laser_points)
 
         laser_points = global_coords(laser_points, xtrue)
 
-        display.draw_mesh(frame)
-        display.draw_points(frame, laser_points)
-        display.draw_lines(frame, lines, laser_points)
-        display.draw_corner(frame, global_coords(corners, xtrue))
+        display.draw_mesh(frame, config.global_frame_config)
+        display.draw_robot(frame, xtrue, config.global_frame_config)
+        display.draw_points(frame, laser_points, config.global_frame_config)
+        display.draw_lines(frame, second_lines, laser_points, config.global_frame_config)
+        display.draw_points(frame, global_coords(corners, xtrue), 
+                          config.global_frame_config, color=(255, 0, 0), radius=3)
 
         cv2.imshow("Corner extraction test", frame)
 
-        key = cv2.waitKey(0)
+        key = cv2.waitKey(config.dt)
 
         if key == ord('q'):
             break

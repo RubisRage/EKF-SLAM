@@ -8,7 +8,7 @@ from ekf import predict, update, augment
 from loader import loader
 from associate import associate
 from corner_extraction import find_corners
-from utils import cartesian_coords, process_laser, global_coords
+from utils import process_laser
 from display import build_global_frame
 
 
@@ -32,19 +32,21 @@ def main():
         xtrue += [*controls]
 
         laser_points = process_laser(laser)
-        z = find_corners(X, laser_points, laser.data)
+        z = find_corners(X, laser_points)
+
 
         lm, nLm = associate(X, P, z, R, INNER_GATE, OUTER_GATE)
 
-        print(f"Associated: {len(lm)}, New: {len(nLm)}")
-        frame = build_global_frame(xtrue, X, laser_points, lm, nLm)
-        cv2.imshow("Association test", frame)
+        print(f"Found: {len(z)}, Associated: {len(lm)}, New: {len(nLm)}")
+
+        frame = build_global_frame(xtrue, X, laser_points, z, lm, nLm)
+        cv2.imshow("EKF", frame)
 
         # Draw map
-        while (key := cv2.waitKey()) != ord(' '):
-            if key == ord('q'):
-                cv2.destroyAllWindows()
-                exit()
+        key = cv2.waitKey(config.dt)
+
+        if key == ord('q'):
+            break
 
         # STEP 2: Update
         # X, P = update(X, P, lm, R)

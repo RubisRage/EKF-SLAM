@@ -1,7 +1,7 @@
 from slam_types import AssociatedLandmark
 from math import inf, log
 from models import observe_model
-from utils import pi_to_pi, cartesian_coords, distance
+from utils import pi_to_pi 
 from numpy.linalg import det
 
 import numpy as np
@@ -71,7 +71,7 @@ def compute_association(
     nis = v.T @ np.linalg.inv(S) @ v
     # nis = v.T @ S @ v
 
-    print(det(S))
+    # print(det(S))
 
     # Normalised distance: nis + ln(|S|)
     nd = nis + log(det(S))
