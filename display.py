@@ -145,12 +145,10 @@ def build_global_frame(xtrue, X, laser_points, z, associatedLm, newLm):
 
     # Draw observations
 
-    zGlobal = global_coords(cartesian_coords(
-        np.array(list(map(lambda lm: lm.z, associatedLm)), dtype=np.double)
-    ), X[:3])
+    zGlobal = global_coords(cartesian_coords(z), X[:3])
 
     draw_points(frame, zGlobal, config.global_frame_config, color=(0, 0, 255), 
-                radius=4)
+                radius=4, labels=range(len(zGlobal)))
 
     # Draw associated landmarks
     associatedLmGlobal = global_coords(cartesian_coords(

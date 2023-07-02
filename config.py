@@ -12,9 +12,9 @@ global_frame_config = {
         "height": 1000,
 }
 
-global_frame_config["meters_to_px_ratio"] = global_frame_config["width"] / 15
+global_frame_config["meters_to_px_ratio"] = global_frame_config["width"] / 20
 global_frame_config["origin"] = np.array([
-    global_frame_config["width"] * 0.05,
+    global_frame_config["width"] * 0.01,
     global_frame_config["height"] * 0.5
 ])
 
@@ -23,14 +23,14 @@ global_frame_config["origin"] = np.array([
 # CORNER EXTRACTION CONFIG ==========
 
 # Line segmentation
-lseg_base_distance = 0.1            # meters
-lseg_distance_scale_factor = 0.05
+lseg_base_distance = 0.05           # meters
+lseg_distance_scale_factor = 0.02
 lseg_alfa_max = 5*pi / 180         # radians
 lseg_lbd_scale_factor = 0.1
 
 # Line merging
-lmerg_max_distance = 0.5            # meters
-lmerg_max_angle = pi/180            # radians
+lmerg_max_distance = .1               # meters
+lmerg_max_angle = 5*pi/180            # radians
 
 # Corner extraction
 cext_alfa_min = (90-12) * pi / 180    # radians
@@ -61,7 +61,7 @@ R = np.array([
 ])
 
 # Association gates
-INNER_GATE = .5
-OUTER_GATE = 25.0
+INNER_GATE = .05
+OUTER_GATE = .5
 
 # ===================================

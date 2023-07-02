@@ -31,9 +31,9 @@ def main():
         X, P = predict(X, P, controls, Q, dt)
         xtrue += [*controls]
 
+        # TODO: Add process and observe noise
         laser_points = process_laser(laser)
         z = find_corners(X, laser_points)
-
 
         lm, nLm = associate(X, P, z, R, INNER_GATE, OUTER_GATE)
 
@@ -43,13 +43,16 @@ def main():
         cv2.imshow("EKF", frame)
 
         # Draw map
-        key = cv2.waitKey(config.dt)
+        key = cv2.waitKey(dt)
+
+        if key == ord('s'):
+            dt = 10 if dt == 0 else 0
 
         if key == ord('q'):
             break
 
         # STEP 2: Update
-        # X, P = update(X, P, lm, R)
+        X, P = update(X, P, lm, R)
 
         # STEP 3: Augment
         X, P = augment(X, P, nLm, R)

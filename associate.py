@@ -22,9 +22,12 @@ def associate(
     associatedLm = []
     newLm = []
 
-    nRb = 3                     # Number of vehicle state variables
+    nRb = 3                      # Number of vehicle state variables
     nLm = (x.shape[0] - 3) // 2  # Number of already present features
 
+    i = 0
+
+    # For each observed feature
     for lm in z:
         bestId = 0
         bestN = inf
@@ -40,10 +43,15 @@ def associate(
             elif nis < outer:
                 outer = nis
 
+            print(f"Lm {i} with {fid} INNER: {nis}")
+
         if bestId != 0:
             associatedLm.append(AssociatedLandmark(np.array(lm), bestId))
         elif outer > outerGate:
             newLm.append(lm)
+
+        print(f"Lm {i} OUTER: {outer}")
+        i += 1
 
     return associatedLm, newLm
 
@@ -67,20 +75,9 @@ def compute_association(
     S = H @ P @ H.T + R
 
     # Normalised innovation squared: v' * S^-1 * v
-    # TODO: Check this -> nis = v.T @ np.linalg.inv(S) @ v
     nis = v.T @ np.linalg.inv(S) @ v
-    # nis = v.T @ S @ v
-
-    # print(det(S))
 
     # Normalised distance: nis + ln(|S|)
     nd = nis + log(det(S))
-    # nd = nis * 2.
-
-    """
-    print(z, end=f' - {fid}: eucl(')
-    print(distance(*cartesian_coords([z, zp], X[:3])), end='')
-    print(f') - norm({nd})')
-    """
 
     return nis, nd

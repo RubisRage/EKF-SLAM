@@ -22,7 +22,7 @@ def line_segmentation(laser_points):
             first_phase_lines.append((line_segment_start, i))
             line_segment_start = i+1
 
-    if line_segment_start != len(laser_points) - 1:    
+    if line_segment_start != len(laser_points) - 1:
         first_phase_lines.append((line_segment_start, len(laser_points)-1))
 
     second_phase_lines = []
@@ -30,8 +30,7 @@ def line_segmentation(laser_points):
 
     for line in first_phase_lines:
         for j in range(line[0], line[1]):
-            if j+3 < len(laser_points):
-
+            if j+3 < line[1]:
                 v1 = np.array(laser_points[j]) - np.array(laser_points[j+1])
                 v2 = np.array(laser_points[j+2]) - np.array(laser_points[j+3])
 
@@ -39,10 +38,6 @@ def line_segmentation(laser_points):
 
                 if alfa < alfa_max:
                     second_phase_lines.append((j, j+3))
-
-    # TODO: Review repeated line segments. Ej: [[1, 2], [1,2] ...]
-    # TIA: Last index of i-th line segment may coincide with first index of
-    # i+1-th line segment (d = 0).
 
     third_phase_lines = []
     lbd_scale_factor = config.lseg_lbd_scale_factor
@@ -146,6 +141,7 @@ def main():
 
     data_loader = loader.loader(config.log)
     xtrue = np.zeros((3,))
+    dt = config.dt
 
     # TODO: Check duplicate corner extraction
 
@@ -168,13 +164,18 @@ def main():
         display.draw_mesh(frame, config.global_frame_config)
         display.draw_robot(frame, xtrue, config.global_frame_config)
         display.draw_points(frame, laser_points, config.global_frame_config)
-        display.draw_lines(frame, second_lines, laser_points, config.global_frame_config)
-        display.draw_points(frame, global_coords(corners, xtrue), 
-                          config.global_frame_config, color=(255, 0, 0), radius=3)
+        display.draw_lines(frame, second_lines, laser_points,
+                           config.global_frame_config)
+        display.draw_points(frame, global_coords(corners, xtrue),
+                            config.global_frame_config, color=(255, 0, 0),
+                            radius=3, labels=range(len(corners)))
 
         cv2.imshow("Corner extraction test", frame)
 
-        key = cv2.waitKey(config.dt)
+        key = cv2.waitKey(dt)
+
+        if key == ord('s'):
+            dt = 10 if dt == 0 else 0
 
         if key == ord('q'):
             break
