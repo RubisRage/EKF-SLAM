@@ -49,11 +49,11 @@ X = np.zeros((3,))
 P = np.zeros((3, 3))
 
 # Prediction model noise
-Q = 0.3
+Q = 0.00005
 
 # Observe model noise
-sigmaR = 0.1        # meters
-sigmaB = 1.*pi/180  # radians
+sigmaR = 0.001        # meters
+sigmaB = .01*pi/180  # radians
 
 R = np.array([
     [sigmaR**2, 0],

@@ -141,13 +141,12 @@ def build_global_frame(xtrue, X, laser_points, z, associatedLm, newLm):
 
     # Draw laser data
     draw_points(frame, global_coords(
-        laser_points, X[:3]), config.global_frame_config)
+        laser_points, xtrue), config.global_frame_config)
 
     # Draw observations
-
     zGlobal = global_coords(cartesian_coords(z), X[:3])
 
-    draw_points(frame, zGlobal, config.global_frame_config, color=(0, 0, 255), 
+    draw_points(frame, zGlobal, config.global_frame_config, color=(0, 0, 255),
                 radius=4, labels=range(len(zGlobal)))
 
     # Draw associated landmarks
@@ -157,7 +156,7 @@ def build_global_frame(xtrue, X, laser_points, z, associatedLm, newLm):
 
     ids = list(map(lambda lm: lm.id, associatedLm))
 
-    draw_points(frame, associatedLmGlobal, config.global_frame_config, 
+    draw_points(frame, associatedLmGlobal, config.global_frame_config,
                 color=(255, 0, 255), radius=3, label_color=(255, 0, 255))
 
     predicted_lm = []
@@ -169,8 +168,6 @@ def build_global_frame(xtrue, X, laser_points, z, associatedLm, newLm):
     # Predicted landmarks
     draw_points(frame, predicted_lm, config.global_frame_config,
                 color=(0, 255, 0), radius=2, label_color=(0, 0, 255))
-               #labels=range(3, X.shape[0] - 1, 2), 
-               #label_offset=[10, 10])
 
     # System landmarks (X)
     draw_points(frame, X[3:].reshape(((X.shape[0] - 3) // 2, 2)),
@@ -179,7 +176,6 @@ def build_global_frame(xtrue, X, laser_points, z, associatedLm, newLm):
     # Draw new landmarks
     draw_points(frame, global_coords(cartesian_coords(newLm), X[:3]),
                 config.global_frame_config, color=(0, 255, 255), radius=3)
-    
 
     return frame
 

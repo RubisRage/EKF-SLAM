@@ -64,6 +64,7 @@ def process_laser(laser: Laser, robotPose=(0., 0., 0.)):
 
     x, y, th = robotPose
     points = []
+    polar = []
 
     theta = start
     degreeResolution = step
@@ -73,10 +74,11 @@ def process_laser(laser: Laser, robotPose=(0., 0., 0.)):
     for r in laserdata:
         if r != inf:
             points.append((r * cos(theta + th) - x, r * sin(theta + th) - y))
+            polar.append((r, theta))
 
         theta += degreeResolution
 
-    return np.array(points)
+    return np.array(points), np.array(polar)
 
 
 def least_squares(points) -> tuple[float, float]:
