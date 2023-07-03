@@ -1,10 +1,12 @@
 from utils import (distance, angle_between_vectors, distance_to_line,
-                   intersection_two_lines, range_bearing, process_laser)
+                   intersection_two_lines, range_bearing, process_laser,
+                   cartesian_coords)
+from noise import add_observe_noise
 import numpy as np
 import config
 
 
-def line_segmentation(laser_points):
+def line_segmentation(laser_points, laser_polar):
 
     line_segment_start = 0
     first_phase_lines = []
@@ -13,7 +15,8 @@ def line_segmentation(laser_points):
     distance_scale_factor = config.lseg_distance_scale_factor
 
     for i in range(len(laser_points)-1):
-        p1, p2 = range_bearing([laser_points[i], laser_points[i+1]])
+        p1 = laser_polar[i]
+        p2 = laser_polar[i+1]
 
         d = distance(laser_points[i], laser_points[i+1])
         dmax = base_distance + distance_scale_factor*(p1[0] + p2[0])
@@ -124,8 +127,8 @@ def corner_extraction(lines: list, laser_points):
     return Vcorners
 
 
-def find_corners(X, laser_points):
-    segmented_lines = line_segmentation(laser_points)
+def find_corners(X, laser_points, laser_polar):
+    segmented_lines = line_segmentation(laser_points, laser_polar)
     merged_lines = line_merging(segmented_lines, laser_points)
     corners = corner_extraction(merged_lines, laser_points)
 
@@ -143,9 +146,11 @@ def main():
     xtrue = np.zeros((3,))
     dt = config.dt
 
+    rnd = np.random.RandomState(0)
+
     # TODO: Check duplicate corner extraction
 
-    for controls, laser in data_loader:
+    for i, (controls, laser) in enumerate(data_loader):
         xtrue += controls
 
         height = config.global_frame_config["height"]
@@ -153,13 +158,15 @@ def main():
 
         frame = np.ones((height, width, 3)) * 255
 
-        laser_points = process_laser(laser)
+        laser_points, laser_polar = process_laser(laser)
+        noised_laser_polar = add_observe_noise(rnd, laser_polar)
+        noised_laser_points = cartesian_coords(noised_laser_polar)
 
-        first_lines = line_segmentation(laser_points)
-        second_lines = line_merging(first_lines, laser_points)
-        corners = corner_extraction(second_lines, laser_points)
+        first_lines = line_segmentation(noised_laser_points, noised_laser_polar)
+        second_lines = line_merging(first_lines, noised_laser_points)
+        corners = corner_extraction(second_lines, noised_laser_points)
 
-        laser_points = global_coords(laser_points, xtrue)
+        laser_points = global_coords(noised_laser_points, xtrue)
 
         display.draw_mesh(frame, config.global_frame_config)
         display.draw_robot(frame, xtrue, config.global_frame_config)

@@ -124,7 +124,7 @@ def build_frame(robot_pov, global_frame, map):
     return frame
 
 
-def build_global_frame(xtrue, X, laser_points, z, associatedLm, newLm):
+def build_global_frame(xtrue, X, P, laser_points, z, associatedLm, newLm):
     from utils import global_coords, cartesian_coords
     from models import observe_model
 
@@ -176,6 +176,38 @@ def build_global_frame(xtrue, X, laser_points, z, associatedLm, newLm):
     # Draw new landmarks
     draw_points(frame, global_coords(cartesian_coords(newLm), X[:3]),
                 config.global_frame_config, color=(0, 255, 255), radius=3)
+
+    draw_covariance_ellipses(frame, X, P)
+
+    return frame
+
+
+def draw_covariance_ellipses(frame, x, P, scale=2.0, color=(0, 255, 0),
+                             thickness=2):
+    lenf = x.shape[0]-3  # Number of states
+
+    num_ellipses = lenf // 2
+
+    for i in range(num_ellipses):
+        # Center of the ellipse (x, y coordinates)
+        ellipse_center = (int(x[i * 2]), int(x[i * 2 + 1]))
+        # Covariance matrix of the current ellipse
+        cov_matrix = P[i * 2:i * 2 + 2, i * 2:i * 2 + 2]
+
+        # Compute eigenvalues and eigenvectors of the covariance matrix
+        eigvals, eigvecs = np.linalg.eig(cov_matrix)
+
+        # Calculate the angle between the x-axis and the largest eigenvector
+        angle = np.arctan2(eigvecs[1, 0], eigvecs[0, 0])
+
+        # Calculate the length and width of the ellipse based on the
+        # eigenvalues
+        length = scale * np.sqrt(abs(eigvals[0]))
+        width = scale * np.sqrt(abs(eigvals[1]))
+
+        # Draw the covariance ellipse on the image
+        cv2.ellipse(frame, ellipse_center, (int(length), int(width)),
+                    int(np.degrees(angle)), 0, 360, color, thickness)
 
     return frame
 

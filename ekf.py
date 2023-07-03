@@ -71,6 +71,7 @@ def update(
         v = lm.z - zp
         v[1] = pi_to_pi(v[1])
 
+        """
         # Compute Kalman gain: P * H' * (H * P * H.T + V * R * V.T)^-1
         S = H @ P @ H.T + R
 
@@ -82,6 +83,18 @@ def update(
         # Update covariance matrix
         Id = np.identity(P.shape[0])
         P = (Id - K @ H) @ P
+        """
+
+        PHt = P @ H.T
+        S = H @ PHt + R
+        S = (S+S.T) * 0.5
+        SChol = np.linalg.cholesky(S)
+        SCholInv = inv(SChol)
+        W1 = PHt @ SCholInv
+        W = W1 @ SCholInv.T
+
+        X = X + W @ v
+        P = P - W1 @ W1.T
 
     return X, P
 

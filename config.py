@@ -42,6 +42,10 @@ cext_max_distance_to_corner = 0.5    # meters
 
 # SLAM CONFIG =======================
 
+# Flags
+ADD_NOISE = True
+DT_OBSERVE = 8*0.025
+
 # State matrix X
 X = np.zeros((3,))
 
@@ -49,7 +53,7 @@ X = np.zeros((3,))
 P = np.zeros((3, 3))
 
 # Prediction model noise
-Q = 0.00005
+Q = 0.0005
 
 # Observe model noise
 sigmaR = 0.001        # meters
@@ -61,7 +65,7 @@ R = np.array([
 ])
 
 # Association gates
-INNER_GATE = .05
-OUTER_GATE = .5
+INNER_GATE = 3000000000
+OUTER_GATE = 100000000000000
 
 # ===================================

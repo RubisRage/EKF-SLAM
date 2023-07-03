@@ -26,8 +26,10 @@ def main():
     INNER_GATE = config.INNER_GATE
     OUTER_GATE = config.OUTER_GATE
     xtrue = np.zeros((3,))
+    dtsum = 0
 
-    for controls, laser in data_loader:
+    for i, (controls, laser) in enumerate(data_loader):
+        print(i)
 
         # True controls / measurements
         xtrue += controls
@@ -45,14 +47,21 @@ def main():
         z = find_corners(X, noised_laser_points)
         lm, nLm = associate(X, P, z, R, INNER_GATE, OUTER_GATE)
 
-        # STEP 2: Update
-        X, P = update(X, P, lm, R)
+        dtsum += 0.1
 
-        # STEP 3: Augment
-        X, P = augment(X, P, nLm, R)
+        if dtsum >= config.DT_OBSERVE:
+
+            # STEP 2: Update
+            X, P = update(X, P, lm, R)
+
+            # STEP 3: Augment
+            X, P = augment(X, P, nLm, R)
+
+            dtsum = 0
 
         # Display
-        frame = build_global_frame(xtrue, X, laser_points, z, lm, nLm)
+        frame = build_global_frame(xtrue, X, P, noised_laser_points, z, lm,
+                                   nLm)
         cv2.imshow("EKF", frame)
 
         key = cv2.waitKey(dt)

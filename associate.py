@@ -43,14 +43,14 @@ def associate(
             elif nis < outer:
                 outer = nis
 
-            print(f"Lm {i} with {fid} INNER: {nis}")
+            # print(f"Lm {i} with {fid} INNER: {nis}")
 
         if bestId != 0:
             associatedLm.append(AssociatedLandmark(np.array(lm), bestId))
         elif outer > outerGate:
             newLm.append(lm)
 
-        print(f"Lm {i} OUTER: {outer}")
+        # print(f"Lm {i} OUTER: {outer}, BEST: {bestId}")
         i += 1
 
     return associatedLm, newLm
@@ -73,11 +73,13 @@ def compute_association(
 
     # Innovation covariance: H * P * H' + R
     S = H @ P @ H.T + R
+    S = (S @ S.T) * 0.5
 
     # Normalised innovation squared: v' * S^-1 * v
     nis = v.T @ np.linalg.inv(S) @ v
 
     # Normalised distance: nis + ln(|S|)
-    nd = nis + log(det(S))
+    # nd = nis + log(det(S))
+    nd = nis / 2
 
     return nis, nd
