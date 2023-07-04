@@ -88,7 +88,21 @@ def update(
         PHt = P @ H.T
         S = H @ PHt + R
         S = (S+S.T) * 0.5
-        SChol = np.linalg.cholesky(S)
+
+       
+        # Regularization Parameter
+        lambda_val = 0.1
+        
+        # size matrix
+        n = S.shape[0]
+        
+        # identity Matrix
+        I = np.eye(n)
+        
+        # Tikhonov Regulation Matrix 
+        A_reg = S + lambda_val * I 
+        
+        SChol = np.linalg.cholesky(A_reg)
         SCholInv = inv(SChol)
         W1 = PHt @ SCholInv
         W = W1 @ SCholInv.T

@@ -44,7 +44,7 @@ def main():
         X, P = predict(X, P, noised_controls, Q, dt)
 
         # Extract observations
-        z = find_corners(X, noised_laser_points)
+        z = find_corners(X, noised_laser_points, laser_polar)
         lm, nLm = associate(X, P, z, R, INNER_GATE, OUTER_GATE)
 
         dtsum += 0.1
