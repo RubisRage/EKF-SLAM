@@ -37,27 +37,15 @@ def main():
 
         # Noised controls / measurements
         noised_controls = add_control_noise(rnd, controls)
-        noised_laser_points = cartesian_coords(
-            add_observe_noise(rnd, laser_polar))
+        noised_laser_polar = add_observe_noise(rnd, laser_polar)
+        noised_laser_points = cartesian_coords(noised_laser_polar)
 
         # STEP 1: Predict
         X, P = predict(X, P, noised_controls, Q, dt)
 
         # Extract observations
-        z = find_corners(X, noised_laser_points, laser_polar)
+        z = find_corners(X, noised_laser_points, noised_laser_polar)
         lm, nLm = associate(X, P, z, R, INNER_GATE, OUTER_GATE)
-
-        dtsum += 0.1
-
-        if dtsum >= config.DT_OBSERVE:
-
-            # STEP 2: Update
-            X, P = update(X, P, lm, R)
-
-            # STEP 3: Augment
-            X, P = augment(X, P, nLm, R)
-
-            dtsum = 0
 
         # Display
         frame = build_global_frame(xtrue, X, P, noised_laser_points, z, lm,
@@ -71,6 +59,19 @@ def main():
 
         if key == ord('q'):
             break
+
+        dtsum += 0.1
+
+        if dtsum >= config.DT_OBSERVE:
+
+            # STEP 2: Update
+            X, P = update(X, P, lm, R)
+
+            # STEP 3: Augment
+            X, P = augment(X, P, nLm, R)
+
+            dtsum = 0
+
 
 
 if __name__ == "__main__":

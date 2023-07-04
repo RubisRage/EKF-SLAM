@@ -93,17 +93,14 @@ def update(
         # Regularization Parameter
         lambda_val = 0.1
         
-        # size matrix
-        n = S.shape[0]
-        
-        # identity Matrix
-        I = np.eye(n)
+        # Identity Matrix
+        I = np.identity(S.shape[0])
         
         # Tikhonov Regulation Matrix 
         A_reg = S + lambda_val * I 
         
         SChol = np.linalg.cholesky(A_reg)
-        SCholInv = inv(SChol)
+        SCholInv = inv(SChol.T)
         W1 = PHt @ SCholInv
         W = W1 @ SCholInv.T
 
