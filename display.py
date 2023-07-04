@@ -144,10 +144,10 @@ def build_global_frame(xtrue, X, P, laser_points, z, associatedLm, newLm):
         laser_points, xtrue), config.global_frame_config)
 
     # Draw observations
-    zGlobal = global_coords(cartesian_coords(z), X[:3])
+    zGlobal = global_coords(cartesian_coords(z), xtrue)
 
     draw_points(frame, zGlobal, config.global_frame_config, color=(0, 0, 255),
-                radius=4, labels=range(len(zGlobal)))
+                radius=4, labels=list(range(len(zGlobal))), label_offset=[-10, 20])
 
     # Draw associated landmarks
     associatedLmGlobal = global_coords(cartesian_coords(
@@ -156,43 +156,39 @@ def build_global_frame(xtrue, X, P, laser_points, z, associatedLm, newLm):
 
     ids = list(map(lambda lm: lm.id, associatedLm))
 
-    draw_points(frame, associatedLmGlobal, config.global_frame_config,
-                color=(255, 0, 255), radius=3, label_color=(255, 0, 255))
+    draw_points(frame, associatedLmGlobal, config.global_frame_config, labels=ids,
+                color=(255, 0, 255), radius=3, label_color=(255, 0, 255), 
+                label_offset=[25, -10])
 
     predicted_lm = []
 
-    for fid in range(3, X.shape[0] - 1, 2):
-        predicted_lm.append(global_coords(cartesian_coords(
-            [observe_model(X, fid)[0]]), X[:3])[0])
-
-    # Predicted landmarks
-    draw_points(frame, predicted_lm, config.global_frame_config,
-                color=(0, 255, 0), radius=2, label_color=(0, 0, 255))
-
     # System landmarks (X)
     draw_points(frame, X[3:].reshape(((X.shape[0] - 3) // 2, 2)),
-                config.global_frame_config, color=(255, 0, 0), radius=1)
+                config.global_frame_config, color=(0, 255, 0), radius=1, 
+                labels=list(range(3, X.shape[0]-1, 2)), label_offset=[10, -20],
+                label_color=(0, 0, 255))
 
     # Draw new landmarks
     draw_points(frame, global_coords(cartesian_coords(newLm), X[:3]),
                 config.global_frame_config, color=(0, 255, 255), radius=3)
 
-    draw_covariance_ellipses(frame, X, P)
+    draw_covariance_ellipses(frame, config.global_frame_config, X, P) 
 
     return frame
 
 
-def draw_covariance_ellipses(frame, x, P, scale=5.0, color=(0, 255, 0),
-                             thickness=2):
-    lenf = x.shape[0]-3  # Number of states
+def draw_covariance_ellipses(frame, frame_config, x, P, scale=3.0, color=(255, 0, 0),
+                             thickness=1):
+    lenf = x.shape[0]-3  # Number of features
 
     num_ellipses = lenf // 2
 
     for i in range(num_ellipses):
         # Center of the ellipse (x, y coordinates)
-        ellipse_center = (int(x[i * 2]), int(x[i * 2 + 1]))
+        ellipse_center = to_display_space((x[i*2], x[i*2 + 1]), frame_config)
+
         # Covariance matrix of the current ellipse
-        cov_matrix = P[i * 2:i * 2 + 2, i * 2:i * 2 + 2]
+        cov_matrix = P[i*2: i*2 + 2, i*2: i*2 + 2]
 
         # Compute eigenvalues and eigenvectors of the covariance matrix
         eigvals, eigvecs = np.linalg.eig(cov_matrix)
@@ -202,12 +198,12 @@ def draw_covariance_ellipses(frame, x, P, scale=5.0, color=(0, 255, 0),
 
         # Calculate the length and width of the ellipse based on the
         # eigenvalues
-        length = scale * np.sqrt(abs(eigvals[0]))
-        width = scale * np.sqrt(abs(eigvals[1]))
+        length = frame_config["meters_to_px_ratio"] * np.sqrt(abs(eigvals[0]))
+        width = frame_config["meters_to_px_ratio"] * np.sqrt(abs(eigvals[1]))
 
         # Draw the covariance ellipse on the image
-        cv2.ellipse(frame, ellipse_center, (int(length), int(width)),
-                    int(np.degrees(angle)), 0, 360, color, thickness)
+       #cv2.ellipse(frame, ellipse_center, (int(length), int(width)),
+       #            int(np.degrees(angle)), 0, 360, color, thickness)
 
     return frame
 

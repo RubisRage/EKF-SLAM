@@ -4,6 +4,7 @@ from models import observe_model
 from numpy.linalg import inv
 from math import sin, cos
 
+import config
 import numpy as np
 
 
@@ -87,17 +88,13 @@ def update(
 
         PHt = P @ H.T
         S = H @ PHt + R
-        S = (S+S.T) * 0.5
+        S = (S @ S.T) * 0.5 # Make symmetric
 
-       
-        # Regularization Parameter
-        lambda_val = 0.1
-        
         # Identity Matrix
         I = np.identity(S.shape[0])
         
         # Tikhonov Regulation Matrix 
-        A_reg = S + lambda_val * I 
+        A_reg = S + config.tikhonov_factor * I 
         
         SChol = np.linalg.cholesky(A_reg)
         SCholInv = inv(SChol.T)

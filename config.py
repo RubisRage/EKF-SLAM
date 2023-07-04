@@ -2,7 +2,7 @@ import numpy as np
 from math import pi
 
 log = "./logs/hall-1.log"
-dt = 0  # milliseconds, 0 for step-by-step execution
+dt = 5  # milliseconds, 0 for step-by-step execution
 
 # FRAME CONFIG ======================
 
@@ -42,7 +42,6 @@ cext_max_distance_to_corner = 0.5    # meters
 
 # SLAM CONFIG =======================
 
-# Flags
 ADD_NOISE = True
 DT_OBSERVE = 8*0.025
 
@@ -65,7 +64,10 @@ R = np.array([
 ])
 
 # Association gates
-INNER_GATE = 3000000000
-OUTER_GATE = 100000000000000
+INNER_GATE = 0.09
+OUTER_GATE = 10
+
+# Tikhonov Regulation factor 
+tikhonov_factor = 0.05
 
 # ===================================

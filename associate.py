@@ -5,6 +5,7 @@ from utils import pi_to_pi
 from numpy.linalg import det
 
 import numpy as np
+import config
 
 
 def associate(
@@ -43,14 +44,22 @@ def associate(
             elif nis < outer:
                 outer = nis
 
-            # print(f"Lm {i} with {fid} INNER: {nis}")
+            print(f"Lm {i} with {fid} INNER: {nis}")
 
         if bestId != 0:
             associatedLm.append(AssociatedLandmark(np.array(lm), bestId))
+            # best = next(filter(lambda alm: alm.id == bestId, associatedLm), None)
+
+            # if best is None:
+            #     associatedLm.append(AssociatedLandmark(np.array(lm), bestId))
+            # elif bestN < compute_association(x, P, best.z, best.id, R)[1]:
+            #     associatedLm.pop(associatedLm.index(best))
+            #     associatedLm.append(AssociatedLandmark(np.array(lm), bestId))
+
         elif outer > outerGate:
             newLm.append(lm)
 
-        # print(f"Lm {i} OUTER: {outer}, BEST: {bestId}")
+        print(f"Lm {i} OUTER: {outer}, BEST: {bestId}")
         i += 1
 
     return associatedLm, newLm
@@ -73,10 +82,17 @@ def compute_association(
 
     # Innovation covariance: H * P * H' + R
     S = H @ P @ H.T + R
-    S = (S @ S.T) * 0.5
+    S = (S @ S.T) * 0.5 # Make symmetric
+    
+    # Identity Matrix
+    I = np.identity(S.shape[0])
+        
+    # Tikhonov Regulation Matrix 
+    A_reg = S + config.tikhonov_factor * I 
 
     # Normalised innovation squared: v' * S^-1 * v
-    nis = v.T @ np.linalg.inv(S) @ v
+    # nis = v.T @ np.linalg.inv(S) @ v
+    nis = v.T @ np.linalg.inv(A_reg) @ v
 
     # Normalised distance: nis + ln(|S|)
     # nd = nis + log(det(S))

@@ -62,15 +62,15 @@ def main():
 
         dtsum += 0.1
 
-        if dtsum >= config.DT_OBSERVE:
+        # if dtsum >= config.DT_OBSERVE:
 
-            # STEP 2: Update
-            X, P = update(X, P, lm, R)
+        # STEP 2: Update
+        X, P = update(X, P, lm, R)
 
-            # STEP 3: Augment
-            X, P = augment(X, P, nLm, R)
+        # STEP 3: Augment
+        X, P = augment(X, P, nLm, R)
 
-            dtsum = 0
+        dtsum = 0
 
 
 
