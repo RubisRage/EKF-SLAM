@@ -182,7 +182,7 @@ def build_global_frame(xtrue, X, P, laser_points, z, associatedLm, newLm):
     return frame
 
 
-def draw_covariance_ellipses(frame, x, P, scale=2.0, color=(0, 255, 0),
+def draw_covariance_ellipses(frame, x, P, scale=5.0, color=(0, 255, 0),
                              thickness=2):
     lenf = x.shape[0]-3  # Number of states
 

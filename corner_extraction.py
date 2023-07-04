@@ -1,7 +1,6 @@
 from utils import (distance, angle_between_vectors, distance_to_line,
                    intersection_two_lines, range_bearing, process_laser,
                    cartesian_coords)
-from noise import add_observe_noise
 import numpy as np
 import config
 
@@ -141,6 +140,7 @@ def main():
     import config
     import display
     from utils import global_coords
+    from noise import add_observe_noise, add_control_noise
 
     data_loader = loader.loader(config.log)
     xtrue = np.zeros((3,))
@@ -148,17 +148,16 @@ def main():
 
     rnd = np.random.RandomState(0)
 
-    # TODO: Check duplicate corner extraction
-
     for i, (controls, laser) in enumerate(data_loader):
         xtrue += controls
 
         height = config.global_frame_config["height"]
-        width = config.global_frame_config["height"]
+        width = config.global_frame_config["width"]
 
         frame = np.ones((height, width, 3)) * 255
 
         laser_points, laser_polar = process_laser(laser)
+        controls = add_control_noise(rnd, controls)
         noised_laser_polar = add_observe_noise(rnd, laser_polar)
         noised_laser_points = cartesian_coords(noised_laser_polar)
 

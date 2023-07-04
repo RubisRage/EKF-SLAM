@@ -89,7 +89,7 @@ def update(
         S = H @ PHt + R
         S = (S+S.T) * 0.5
         SChol = np.linalg.cholesky(S)
-        SCholInv = inv(SChol)
+        SCholInv = inv(SChol.T)
         W1 = PHt @ SCholInv
         W = W1 @ SCholInv.T
 
