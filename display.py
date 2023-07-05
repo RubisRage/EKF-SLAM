@@ -4,6 +4,7 @@ from itertools import zip_longest
 import cv2
 import config
 import numpy as np
+from scipy.linalg import sqrtm
 
 
 def draw_lines(frame, lines, laser_points, frame_config, show_border=False,
@@ -177,35 +178,45 @@ def build_global_frame(xtrue, X, P, laser_points, z, associatedLm, newLm):
     return frame
 
 
-def draw_covariance_ellipses(frame, frame_config, x, P, scale=3.0, color=(255, 0, 0),
+def draw_covariance_ellipses(frame, global_frame_config, x, P, scale=3.0, color=(255, 0, 0),
                              thickness=1):
-    lenf = x.shape[0]-3  # Number of features
+    N = 10
+    inc = 2 * np.pi / N
+    phi = np.arange(0, (2 * np.pi) + inc, inc)
 
-    num_ellipses = lenf // 2
+    lenx = len(x)
+    lenf = (lenx - 3) // 2
+    p = np.zeros((2, (lenf + 1) * (N + 2)))
 
-    for i in range(num_ellipses):
-        # Center of the ellipse (x, y coordinates)
-        ellipse_center = to_display_space((x[i*2], x[i*2 + 1]), frame_config)
+    ii = np.arange(N + 2)
 
-        # Covariance matrix of the current ellipse
-        cov_matrix = P[i*2: i*2 + 2, i*2: i*2 + 2]
+    p[:, ii] = make_ellipse(x[:2], P[:2, :2], 2, phi)
 
-        # Compute eigenvalues and eigenvectors of the covariance matrix
-        eigvals, eigvecs = np.linalg.eig(cov_matrix)
+    ctr = N + 2
+    for i in range(lenf):
+        ii = np.arange(ctr,ctr+N+2)
+        jaux = 3+2*i
+        jj = np.arange(jaux, jaux+2)
+        p[:, ii] = make_ellipse(x[jj], P[jj[0]:jj[1]+1,jj[0]:jj[1]+1], 2, phi)
 
-        # Calculate the angle between the x-axis and the largest eigenvector
-        angle = np.arctan2(eigvecs[1, 0], eigvecs[0, 0])
+        ctr+=N+2
+    
+    max = len(p[0])
+    for i in range(0,max,N):
+        for x in range(N):
+            point = to_display_space([p[0,x],p[1,x]],global_frame_config)    
+            cv2.circle(frame, point, 10, color, thickness)
+        print("landmark =====================")
 
-        # Calculate the length and width of the ellipse based on the
-        # eigenvalues
-        length = frame_config["meters_to_px_ratio"] * np.sqrt(abs(eigvals[0]))
-        width = frame_config["meters_to_px_ratio"] * np.sqrt(abs(eigvals[1]))
-
-        # Draw the covariance ellipse on the image
-       #cv2.ellipse(frame, ellipse_center, (int(length), int(width)),
-       #            int(np.degrees(angle)), 0, 360, color, thickness)
-
-    return frame
+def make_ellipse(x, P, s, phi):
+    #a = np.array([[1.0, 3.0], [1.0, 4.0]])
+    r = sqrtm(P)
+    a = s * r @ np.array([np.cos(phi), np.sin(phi)])
+    p = np.zeros((2, len(phi) + 1))
+    p[1, :] = np.concatenate([a[1, :] + x[1], [np.nan]])
+    p[0, :] = np.concatenate([a[0, :] + x[0], [np.nan]])
+    return p
+    
 
 
 def main():
