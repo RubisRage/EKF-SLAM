@@ -5,7 +5,9 @@ def add_control_noise(rnd, controls):
     noised_controls = controls.copy()
 
     if config.ADD_NOISE:
-        noised_controls += rnd.normal(0, 1, 3) * config.Q
+        noised_controls[0] += rnd.normal(0, 1, 1) * config.sigmaX
+        noised_controls[1] += rnd.normal(0, 1, 1) * config.sigmaY
+        noised_controls[2] += rnd.normal(0, 1, 1) * config.sigmaT
 
     return noised_controls
 

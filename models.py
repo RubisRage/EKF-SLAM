@@ -28,7 +28,7 @@ def observe_model(
 
     z = np.array([
         distance,
-        pi_to_pi(atan2(ydiff, xdiff) - X[2])
+        atan2(ydiff, xdiff) - X[2]
     ])
 
     H[:, 0:3] = [[-xd, -yd,   0],

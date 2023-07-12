@@ -124,20 +124,32 @@ def build_frame(robot_pov, global_frame, map):
     return frame
 
 
-def build_global_frame(xtrue, X, P, laser_points, z, associatedLm, newLm):
+def build_frame_test(frame1, frame2):
+
+    border_width = int(frame1.shape[0] * 0.05)
+
+    frame = np.zeros((
+        frame1.shape[0] + frame2.shape[0] + border_width,
+        frame1.shape[1],
+        3
+    ))
+
+    frame[:frame1.shape[0], :frame1.shape[1]] = frame1
+    frame[frame1.shape[0] + border_width:, :frame2.shape[1]] = frame2
+
+    return frame
+
+
+def build_global_frame(frame, xtrue, xfalse, X, P, laser_points, z, associatedLm, newLm):
     from utils import global_coords, cartesian_coords
     from models import observe_model
-
-    frame_height = config.global_frame_config["height"]
-    frame_width = config.global_frame_config["width"]
-
-    frame = np.ones((frame_height, frame_width, 3)) * 255
 
     draw_mesh(frame, config.global_frame_config)
 
     # Draw robot
-    draw_robot(frame, X[:3], config.global_frame_config, color=(0, 0, 255))
     draw_robot(frame, xtrue, config.global_frame_config, color=(255, 0, 0))
+    draw_robot(frame, xfalse, config.global_frame_config)
+    draw_robot(frame, X[:3], config.global_frame_config, color=(0, 0, 255))
 
     # Draw laser data
     draw_points(frame, global_coords(
@@ -146,13 +158,13 @@ def build_global_frame(xtrue, X, P, laser_points, z, associatedLm, newLm):
     # Draw observations
     zGlobal = global_coords(cartesian_coords(z), xtrue)
 
-    draw_points(frame, zGlobal, config.global_frame_config, color=(0, 0, 255),
-                radius=4, labels=list(range(len(zGlobal))), label_offset=[-10, 20])
+    # draw_points(frame, zGlobal, config.global_frame_config, color=(0, 0, 255),
+                # radius=4, labels=list(range(len(zGlobal))), label_offset=[-10, 20])
 
     # Draw associated landmarks
     associatedLmGlobal = global_coords(cartesian_coords(
         np.array(list(map(lambda lm: lm.z, associatedLm)), dtype=np.double)
-    ), X[:3])
+    ), xtrue)
 
     ids = list(map(lambda lm: lm.id, associatedLm))
 
@@ -162,17 +174,47 @@ def build_global_frame(xtrue, X, P, laser_points, z, associatedLm, newLm):
 
     predicted_lm = []
 
+    for i in range(3, X.shape[0]-1, 2):
+        predicted_lm.append(global_coords(cartesian_coords(
+            [observe_model(X, i)[0]]
+        ), xtrue)[0])
+
+    # draw_points(frame, predicted_lm, config.global_frame_config, color=(255, 0, 0), 
+    #             radius=2)
+
     # System landmarks (X)
     draw_points(frame, X[3:].reshape(((X.shape[0] - 3) // 2, 2)),
                 config.global_frame_config, color=(0, 255, 0), radius=1, 
-                labels=list(range(3, X.shape[0]-1, 2)), label_offset=[10, -20],
-                label_color=(0, 0, 255))
+                labels=list(range(3, X.shape[0]-1, 2)), label_offset=[5, -5],
+                label_color=(0, 255, 0))
 
     # Draw new landmarks
-    draw_points(frame, global_coords(cartesian_coords(newLm), X[:3]),
-                config.global_frame_config, color=(0, 255, 255), radius=3)
+   #draw_points(frame, global_coords(cartesian_coords(newLm), X[:3]),
+   #            config.global_frame_config, color=(0, 255, 255), radius=3)
 
-    draw_covariance_ellipses(frame, config.global_frame_config, X, P) 
+    # draw_covariance_ellipses(frame, config.global_frame_config, X, P) 
+
+    return frame
+
+
+def build_local_frame(laser_points, X):
+    from models import observe_model
+    from utils import cartesian_coords
+
+    width = config.local_frame_config["width"]
+    height = config.local_frame_config["height"]
+
+    frame = np.ones((height, width, 3)) * 255
+
+    draw_robot(frame, (0, 0, 0), config.local_frame_config)
+    draw_points(frame, laser_points, config.local_frame_config)
+
+    landmarks = []
+
+    for i in range(3, X.shape[0]-1, 2):
+        landmarks.extend(cartesian_coords([observe_model(X, i)[0]]))
+
+    draw_points(frame, landmarks, config.local_frame_config, color=(0, 255, 0))
 
     return frame
 
@@ -202,8 +244,8 @@ def draw_covariance_ellipses(frame, frame_config, x, P, scale=3.0, color=(255, 0
         width = frame_config["meters_to_px_ratio"] * np.sqrt(abs(eigvals[1]))
 
         # Draw the covariance ellipse on the image
-       #cv2.ellipse(frame, ellipse_center, (int(length), int(width)),
-       #            int(np.degrees(angle)), 0, 360, color, thickness)
+        cv2.ellipse(frame, ellipse_center, (int(length), int(width)),
+                    int(np.degrees(angle)), 0, 360, color, thickness)
 
     return frame
 

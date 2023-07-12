@@ -48,14 +48,6 @@ def associate(
 
         if bestId != 0:
             associatedLm.append(AssociatedLandmark(np.array(lm), bestId))
-            # best = next(filter(lambda alm: alm.id == bestId, associatedLm), None)
-
-            # if best is None:
-            #     associatedLm.append(AssociatedLandmark(np.array(lm), bestId))
-            # elif bestN < compute_association(x, P, best.z, best.id, R)[1]:
-            #     associatedLm.pop(associatedLm.index(best))
-            #     associatedLm.append(AssociatedLandmark(np.array(lm), bestId))
-
         elif outer > outerGate:
             newLm.append(lm)
 
@@ -82,13 +74,13 @@ def compute_association(
 
     # Innovation covariance: H * P * H' + R
     S = H @ P @ H.T + R
-    S = (S @ S.T) * 0.5 # Make symmetric
-    
+    S = (S + S.T) * 0.5  # Make symmetric
+
     # Identity Matrix
     I = np.identity(S.shape[0])
-        
-    # Tikhonov Regulation Matrix 
-    A_reg = S + config.tikhonov_factor * I 
+
+    # Tikhonov Regulation Matrix
+    A_reg = S + config.tikhonov_factor * I
 
     # Normalised innovation squared: v' * S^-1 * v
     # nis = v.T @ np.linalg.inv(S) @ v

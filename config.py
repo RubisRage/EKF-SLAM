@@ -2,7 +2,7 @@ import numpy as np
 from math import pi
 
 log = "./logs/hall-1.log"
-dt = 5  # milliseconds, 0 for step-by-step execution
+dt = 0  # milliseconds, 0 for step-by-step execution
 
 # FRAME CONFIG ======================
 
@@ -12,11 +12,24 @@ global_frame_config = {
         "height": 1000,
 }
 
-global_frame_config["meters_to_px_ratio"] = global_frame_config["width"] / 20
+global_frame_config["meters_to_px_ratio"] = global_frame_config["width"] / 15
 global_frame_config["origin"] = np.array([
-    global_frame_config["width"] * 0.01,
+    global_frame_config["width"] * 0.1,
     global_frame_config["height"] * 0.5
 ])
+
+# Local frame
+local_frame_config = {
+    "width": 1000,
+    "height": 600,
+}
+
+local_frame_config["meters_to_px_ratio"] = global_frame_config["width"] / 20
+local_frame_config["origin"] = np.array([
+    local_frame_config["width"] * 0.4,
+    local_frame_config["height"] * 0.5
+])
+
 
 # ===================================
 
@@ -52,11 +65,19 @@ X = np.zeros((3,))
 P = np.zeros((3, 3))
 
 # Prediction model noise
-Q = 0.0005
+sigmaX = 0.003
+sigmaY = 0.003
+sigmaT = 0.003 
+
+Q = np.array([
+    [sigmaX**2, 0, 0],
+    [0, sigmaY**2, 0],
+    [0, 0, sigmaT**2]
+])
 
 # Observe model noise
-sigmaR = 0.001        # meters
-sigmaB = .01*pi/180  # radians
+sigmaR = 0.001       # meters
+sigmaB = 0.01*pi/180  # radians
 
 R = np.array([
     [sigmaR**2, 0],
@@ -64,10 +85,10 @@ R = np.array([
 ])
 
 # Association gates
-INNER_GATE = 0.09
-OUTER_GATE = 10
+INNER_GATE = 2500
+OUTER_GATE = 200000
 
-# Tikhonov Regulation factor 
-tikhonov_factor = 0.05
+# Tikhonov Regulation factor
+tikhonov_factor = 0.0
 
 # ===================================

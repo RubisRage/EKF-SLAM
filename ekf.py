@@ -34,23 +34,21 @@ def predict(
     ])
 
     # Prediction model noise
-    W = np.array([
-        [ix],
-        [iy],
-        [ith]
-    ])
+    W = np.array([[ix], [iy], [ith]])
+    WQW = W * config.sigmaX @ W.T
 
-    WQW = W * Q @ W.T
+    # TODO: Get WQW to be a 3x3 matrix instead of being a scalar
 
     # Update robot-robot covariance Prr = A * Prr * A' + W * Q * W'
     # P[0:3, 0:3] = np.matmul(np.matmul(A, P[0:3, 0:3]), A.T) + WQW
     P[0:3, 0:3] = A @ P[0:3, 0:3] @ A.T + WQW
 
+    B = P.copy()
+
     # Update robot-landmark covariance Pri = A * Pri, Pir = Pri.T
-    for idx in range(3, P.shape[0], 2):
-        # P[0:2, idx:idx+2] = np.matmul(A, P[0:2, idx:idx+2])
-        P[0:3, idx:idx+3] = A @ P[0:3, idx:idx+3]
-        P[idx:idx+3, 0:3] = P[0:3, idx:idx+3].T
+    if X.shape[0] > 3:
+        P[0:3, 3:] = A @ P[0:3, 3:]
+        P[3:, 0:3] = P[0:3, 3:].T
 
     return X, P
 
@@ -72,37 +70,24 @@ def update(
         v = lm.z - zp
         v[1] = pi_to_pi(v[1])
 
-        """
-        # Compute Kalman gain: P * H' * (H * P * H.T + V * R * V.T)^-1
-        S = H @ P @ H.T + R
-
-        K = P @ H.T @ inv(S)
-
-        # Update state vector
-        X = X + K @ v
-
-        # Update covariance matrix
-        Id = np.identity(P.shape[0])
-        P = (Id - K @ H) @ P
-        """
-
         PHt = P @ H.T
         S = H @ PHt + R
-        S = (S @ S.T) * 0.5 # Make symmetric
+        S = (S + S.T) * 0.5 # Make symmetric
 
-        # Identity Matrix
-        I = np.identity(S.shape[0])
+        # Tikhonov Regulation 
+        A_reg = S + config.tikhonov_factor * np.identity(S.shape[0])
         
-        # Tikhonov Regulation Matrix 
-        A_reg = S + config.tikhonov_factor * I 
-        
-        SChol = np.linalg.cholesky(A_reg)
-        SCholInv = inv(SChol.T)
-        W1 = PHt @ SCholInv
-        W = W1 @ SCholInv.T
+        try:
+            SChol = np.linalg.cholesky(S)
+            SCholInv = inv(SChol.T)
+            W1 = PHt @ SCholInv
+            W = W1 @ SCholInv.T
 
-        X = X + W @ v
-        P = P - W1 @ W1.T
+            X = X + W @ v
+            P = P - W1 @ W1.T
+        except:
+            print(f"Not positive definite, asssociation: {lm.id}")
+
 
     return X, P
 
@@ -146,15 +131,8 @@ def augment(
         P[N:N+2, N:N+2] = Jxr @ P[0:3, 0:3] @ Jxr.T + Jz @ R @ Jz.T
 
         # Robot-landmark covariance
-        P[N:N+2, 0:2] = Jz @ P[0:2, 0:2]
-        P[0:2, N:N+2] = P[N:N+2, 0:2].T
-
-        # Landmark-landmark covariance
-        # if len>3
-        #   rnm= 4:len;
-        #   P(rng,rnm)= Gv*P(1:3,rnm); % map to feature xcorr
-        #   P(rnm,rng)= P(rng,rnm)';
-        # end
+        P[N:N+2, 0:3] = Jxr @ P[0:3, 0:3]
+        P[0:3, N:N+2] = P[N:N+2, 0:3].T
 
         if N > 3:
             P[N:N+2, 3:N] = Jxr @ P[0:3, 3:N]
